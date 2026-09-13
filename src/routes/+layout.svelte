@@ -2,6 +2,10 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
+	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import { dev } from '$app/environment';
+
+	injectAnalytics({ mode: dev ? 'development' : 'production' });
 	import { t, LOCALES } from '$lib/i18n';
 	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
 
@@ -28,6 +32,9 @@
 				<span class="text-neutral-400">
 					{data.session.user.handle ? `@${data.session.user.handle}` : data.session.user.name}
 				</span>
+				{#if data.pendingCount !== null}
+					<a href="/inspector" class="rounded-md border px-2 py-1 text-xs {data.pendingCount ? 'border-amber-700 text-amber-300' : 'border-neutral-800 text-neutral-500'}">🕵️ {data.pendingCount}</a>
+				{/if}
 				<form method="POST" action="/signout">
 					<button class="rounded-md border border-neutral-800 px-3 py-1.5 hover:bg-neutral-900">{t(L, 'nav.signout')}</button>
 				</form>

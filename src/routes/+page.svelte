@@ -57,6 +57,20 @@
 	</div>
 {/snippet}
 
+{#if data.bullshits.length > 0}
+	<section class="mb-8">
+		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">📸 {t(L, 'home.latestBs')}</h2>
+		<div class="flex gap-4 overflow-x-auto pb-3">
+			{#each data.bullshits as b, i (b.id)}
+				<a href="/@{b.target}" class="w-36 shrink-0 rounded-sm bg-[#f5f5f0] p-1.5 shadow-lg transition hover:scale-105" style="transform: rotate({((i * 7) % 5) - 2}deg)">
+					<img src={b.url} alt="" class="w-full" loading="lazy" />
+					<div class="truncate px-0.5 pt-1 text-[10px] text-neutral-600">{b.voterHandle ? `@${b.voterHandle}` : '?'} → @{b.target}</div>
+				</a>
+			{/each}
+		</div>
+	</section>
+{/if}
+
 {#if data.hot.length > 0}
 	<section class="mb-8">
 		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'home.hot')}</h2>

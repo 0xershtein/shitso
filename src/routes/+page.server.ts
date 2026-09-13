@@ -2,17 +2,19 @@ import { redirect } from '@sveltejs/kit';
 import { leaderboard, recentFeed, totals, trending } from '$lib/server/db/queries';
 import { normalizeHandle } from '$lib/emojis';
 import { t } from '$lib/i18n';
+import { latestBullshits } from '$lib/server/bullshit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	const [shit, goat, hot, feed, stats] = await Promise.all([
+	const [shit, goat, hot, feed, stats, bullshits] = await Promise.all([
 		leaderboard('shit'),
 		leaderboard('goat'),
 		trending(),
 		recentFeed(),
-		totals()
+		totals(),
+		latestBullshits()
 	]);
-	return { shit, goat, hot, feed, stats };
+	return { shit, goat, hot, feed, stats, bullshits };
 };
 
 export const actions: Actions = {

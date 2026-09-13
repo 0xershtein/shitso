@@ -207,3 +207,29 @@ export async function inspect(id: number, decision: 'approve' | 'reject') {
 	if (row) await del(row.pathname).catch(() => {});
 	await db.update(bullshits).set({ status: 'rejected', reason: 'inspector', url: '' }).where(eq(bullshits.id, id));
 }
+
+export async function pendingCount(): Promise<number> {
+	const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(bullshits).where(eq(bullshits.status, 'pending'));
+	return row?.n ?? 0;
+}
+
+/** Latest approved polaroids across all targets, for the home page. */
+export async function latestBullshits(limit = 8): Promise<(QueueRow & { mine: false })[]> {
+	const rows = await db
+		.select()
+		.from(bullshits)
+		.where(and(eq(bullshits.status, 'live'), gte(bullshits.createdAt, sql`now() - ${sql.raw(`interval '${BULLSHIT_TTL_DAYS} days'`)}`)))
+		.orderBy(desc(bullshits.createdAt))
+		.limit(limit);
+	return rows.map((r) => ({
+		id: r.id,
+		voterHandle: r.voterHandle,
+		target: r.target,
+		emoji: r.emoji,
+		url: r.url,
+		status: r.status,
+		reports: r.reports,
+		createdAt: new Date(r.createdAt),
+		mine: false as const
+	}));
+}
