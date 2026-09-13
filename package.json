@@ -37,5 +37,13 @@
 	},
 	"dependencies": {
 		"@auth/sveltekit": "^1.11.3"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	},
+	"engines": {
+		"node": "24.x"
 	}
 }
