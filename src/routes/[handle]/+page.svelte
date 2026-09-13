@@ -37,6 +37,7 @@
 			: t(L, 'profile.shareUnrated', { h: data.handle, url: `https://shit.so/@${data.handle}` })
 	);
 	const votesWord = (n: number) => t(L, n === 1 ? 'profile.vote' : 'profile.votes');
+	const fmt = (n: number) => new Intl.NumberFormat(L === 'tr' ? 'tr-TR' : 'en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 
 	// Emoji burst: particles fly out from behind the clicked button.
 	let burstLayer: HTMLDivElement | undefined = $state();
@@ -112,6 +113,16 @@
 				{#if top}<span class="ml-2 text-sm">{t(L, 'profile.mostly')} {top.char} {t(L, `emoji.${top.key}`)}</span>{/if}
 			{/if}
 		</p>
+		{#if data.profile && data.profile.followers !== null}
+			<p class="mt-1 text-xs text-neutral-500">
+				{#if data.profile.name}<span class="text-neutral-400">{data.profile.name}</span> · {/if}
+				<span class="text-neutral-300">{fmt(data.profile.followers)}</span> {t(L, 'profile.followers')} ·
+				<span class="text-neutral-300">{fmt(data.profile.following ?? 0)}</span> {t(L, 'profile.following')}
+				{#if data.tally.total > 0 && data.profile.followers > data.tally.total}
+					· {t(L, 'profile.careRate', { n: fmt(Math.round(data.profile.followers / data.tally.total)) })}
+				{/if}
+			</p>
+		{/if}
 		{#if data.tally.total > 0 && !rated}
 			<p class="mt-1 text-xs text-neutral-500">{t(L, 'profile.moreVotes', { n: MIN_VOTES_FOR_TIER - data.tally.total, votes: votesWord(MIN_VOTES_FOR_TIER - data.tally.total) })}</p>
 		{:else if data.tally.total > 0}

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, index, serial } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, primaryKey, index, serial, integer, boolean } from 'drizzle-orm/pg-core';
 
 export const votes = pgTable(
 	'votes',
@@ -26,3 +26,15 @@ export const voteEvents = pgTable(
 	},
 	(t) => [index('vote_events_target_created_idx').on(t.target, t.createdAt), index('vote_events_created_idx').on(t.createdAt)]
 );
+
+// Public profile facts for a target. Source 'x' = X API (bearer), 'extension' = observed on x.com by an extension user.
+export const profiles = pgTable('profiles', {
+	handle: text('handle').primaryKey(),
+	name: text('name'),
+	followers: integer('followers'),
+	following: integer('following'),
+	avatar: text('avatar'),
+	source: text('source').notNull(),
+	notFound: boolean('not_found').notNull().default(false),
+	fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow()
+});

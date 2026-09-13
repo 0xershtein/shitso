@@ -15,6 +15,13 @@
       "when": 1789289940263,
       "tag": "0001_quiet_angel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789298432922,
+      "tag": "0002_fine_polaris",
+      "breakpoints": true
     }
   ]
 }

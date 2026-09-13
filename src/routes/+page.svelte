@@ -25,6 +25,7 @@
 		{#each EMOJIS as e (e.key)}<span title={t(L, `emoji.${e.key}`)}>{e.char}</span>{/each}
 	</div>
 	<p class="mt-2 text-xs text-neutral-600">{t(L, 'home.stats', { votes: data.stats.votes, targets: data.stats.targets })}</p>
+	<p class="mt-6 inline-block rounded-full border border-neutral-800 px-3 py-1 text-xs text-neutral-400">🎁 {t(L, 'home.gift')}</p>
 </section>
 
 {#snippet row(target: string, total: number, shitScore: number, i: number, right: string | undefined = undefined)}

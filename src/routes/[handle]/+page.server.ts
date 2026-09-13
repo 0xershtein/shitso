@@ -7,6 +7,7 @@ import { eligibility } from '$lib/eligibility';
 import { t } from '$lib/i18n';
 import { exempt, submitVote } from '$lib/server/vote';
 import { readFor } from '$lib/read';
+import { profileFor } from '$lib/server/profiles';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
@@ -28,7 +29,10 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		last24h: stats.last24h,
 		distinctEmojis: tally.distinctEmojis
 	});
-	const gif = await gifFor(handle, tier.gifQuery);
+	const [gif, profile] = await Promise.all([
+		gifFor(handle, tier.gifQuery),
+		profileFor(handle, tally.total > 0)
+	]);
 
 	return {
 		handle,
@@ -40,6 +44,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		tier,
 		virality,
 		gif,
+		profile: profile && !profile.notFound ? { name: profile.name, followers: profile.followers, following: profile.following } : null,
 		read: readFor(tally.counts),
 		isSelf: session?.user?.handle === handle,
 		eligible: session?.user ? eligibility(session.user, exempt()) : null
