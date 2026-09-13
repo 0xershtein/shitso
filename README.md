@@ -46,4 +46,4 @@ Optional: `GIPHY_API_KEY` or `TENOR_API_KEY` enables a reaction gif per tier.
 
 ## License
 
-MIT
+Apache-2.0
