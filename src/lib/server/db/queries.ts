@@ -251,3 +251,20 @@ export async function totals() {
 		.from(votes);
 	return row ?? { votes: 0, targets: 0 };
 }
+
+export interface VoterRow {
+	handle: string;
+	emoji: string;
+	at: Date;
+}
+
+/** Who gave a shit to this target (public by design). Newest first. */
+export async function votersFor(target: string, limit = 40): Promise<VoterRow[]> {
+	const rows = await db
+		.select({ handle: votes.voterHandle, emoji: votes.emoji, at: votes.updatedAt })
+		.from(votes)
+		.where(eq(votes.target, target))
+		.orderBy(desc(votes.updatedAt))
+		.limit(limit);
+	return rows.filter((r): r is { handle: string; emoji: string; at: Date } => !!r.handle).map((r) => ({ ...r, at: new Date(r.at) }));
+}

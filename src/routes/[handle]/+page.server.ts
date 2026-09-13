@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { myVote, rhythmFor, statsFor, tallyFor } from '$lib/server/db/queries';
+import { myVote, rhythmFor, statsFor, tallyFor, votersFor } from '$lib/server/db/queries';
 import { gifFor } from '$lib/server/giphy';
 import { normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
@@ -19,11 +19,12 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	if (params.handle !== `@${handle}`) redirect(301, `/@${handle}`);
 
 	const session = await locals.auth();
-	const [tally, mine, stats, rhythm] = await Promise.all([
+	const [tally, mine, stats, rhythm, voters] = await Promise.all([
 		memo(`p:${handle}:tally`, 5_000, () => tallyFor(handle)),
 		session?.user?.id ? myVote(session.user.id, handle) : null,
 		memo(`p:${handle}:stats`, 10_000, () => statsFor(handle)),
-		memo(`p:${handle}:rhythm`, 30_000, () => rhythmFor(handle))
+		memo(`p:${handle}:rhythm`, 30_000, () => rhythmFor(handle)),
+		memo(`p:${handle}:voters`, 5_000, () => votersFor(handle))
 	]);
 	const tier = tierFor(tally.shitScore, tally.total);
 	const virality = viralityFor({
@@ -46,6 +47,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		mine,
 		stats,
 		rhythm,
+		voters,
 		tier,
 		virality,
 		gif,

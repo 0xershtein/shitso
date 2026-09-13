@@ -7,6 +7,7 @@ export interface Tier {
 	accent: string; // text color class for the score
 	badge: string; // pill classes
 	ring: string; // avatar ring
+	stamp: string | null; // rotated stamp classes shown next to the avatar, null = none
 }
 
 const TIERS: Record<Tier['key'], Tier> = {
@@ -18,7 +19,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 		bg: 'bg-neutral-950',
 		accent: 'text-neutral-300',
 		badge: 'border-neutral-700 bg-neutral-900 text-neutral-300',
-		ring: 'ring-neutral-800'
+		ring: 'ring-neutral-800',
+		stamp: null
 	},
 	respected: {
 		key: 'respected',
@@ -28,7 +30,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(16,185,129,0.22),_transparent_60%)] bg-neutral-950',
 		accent: 'text-emerald-400',
 		badge: 'border-emerald-700/50 bg-emerald-950/60 text-emerald-300',
-		ring: 'ring-emerald-500/60'
+		ring: 'ring-emerald-500/60 shadow-[0_0_40px_rgba(16,185,129,0.35)]',
+		stamp: 'border-emerald-400 text-emerald-300'
 	},
 	questionable: {
 		key: 'questionable',
@@ -38,7 +41,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(234,179,8,0.18),_transparent_60%)] bg-neutral-950',
 		accent: 'text-yellow-400',
 		badge: 'border-yellow-700/50 bg-yellow-950/60 text-yellow-300',
-		ring: 'ring-yellow-500/60'
+		ring: 'ring-yellow-500/60 ring-dashed',
+		stamp: null
 	},
 	certified: {
 		key: 'certified',
@@ -48,7 +52,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(180,83,9,0.30),_transparent_60%)] bg-neutral-950',
 		accent: 'text-amber-400',
 		badge: 'border-amber-700/60 bg-amber-950/60 text-amber-300',
-		ring: 'ring-amber-500/70'
+		ring: 'ring-amber-500/70',
+		stamp: 'border-amber-400 text-amber-300'
 	},
 	biohazard: {
 		key: 'biohazard',
@@ -58,7 +63,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(220,38,38,0.32),_transparent_60%)] bg-neutral-950',
 		accent: 'text-red-400',
 		badge: 'border-red-700/60 bg-red-950/60 text-red-300',
-		ring: 'ring-red-500/80'
+		ring: 'ring-red-500/80 shadow-[0_0_40px_rgba(239,68,68,0.35)]',
+		stamp: 'border-red-500 text-red-400'
 	}
 };
 

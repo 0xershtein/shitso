@@ -22,31 +22,30 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<section class="py-10 text-center">
+<section class="py-6 text-center">
 	<h1 class="text-4xl font-black tracking-tight sm:text-5xl" lang="en">{t(L, 'home.title')}</h1>
-	<p class="mx-auto mt-3 max-w-md text-neutral-400">{t(L, 'home.sub')}</p>
-	<p class="mx-auto mt-4 inline-flex max-w-md items-center gap-2 rounded-lg border border-emerald-900/60 bg-emerald-950/40 px-4 py-2 text-sm font-semibold text-emerald-300">
-		<span class="text-lg">🎁</span>{t(L, 'home.gift')}
-	</p>
-
-	<p class="mt-2 text-xs text-neutral-500"><a href="/extension" class="underline hover:text-neutral-300">🧩 {t(L, 'ext.sub').split('.')[0]}</a></p>
-	<div class="mt-8">
+	<p class="mx-auto mt-2 max-w-md text-neutral-400">{t(L, 'home.sub')}</p>
+	<div class="mt-5">
 		<Search locale={L} popular={(data.hot.length ? data.hot : data.shit).map((r) => ({ handle: r.target, total: r.total, shitScore: r.shitScore, tier: tierFor(r.shitScore, r.total).key }))} />
 	</div>
-
-	<div class="mt-6 flex flex-wrap justify-center gap-1 text-2xl">
+	<div class="mt-3 flex flex-wrap justify-center gap-1 text-xl">
 		{#each EMOJIS as e (e.key)}<span title={t(L, `emoji.${e.key}`)}>{e.char}</span>{/each}
 	</div>
-	<p class="mt-2 text-xs text-neutral-600">{t(L, 'home.stats', { votes: data.stats.votes, targets: data.stats.targets })}</p>
-	<div class="mx-auto mt-6 max-w-md rounded-lg border border-neutral-900 bg-neutral-950/60 px-4 py-3 text-left text-sm">
-		<div class="mb-2 font-semibold text-neutral-200">🐦 {t(L, 'home.byTweet')}</div>
-		<div class="text-xs text-neutral-500">{t(L, 'home.byTweetMention')}</div>
-		<code class="mt-1 block rounded bg-neutral-900 px-3 py-2 font-mono text-neutral-100">@giveshit_bot @elonmusk 💩</code>
-		<div class="mt-2 text-xs text-neutral-500">{t(L, 'home.byTweetReply')}</div>
-		<code class="mt-1 block rounded bg-neutral-900 px-3 py-2 font-mono text-neutral-100">@giveshit_bot 💩</code>
-		<div class="mt-2 text-xs text-neutral-500">{t(L, 'home.byTweetHint')}</div>
+	<p class="mt-1 text-xs text-neutral-600">{t(L, 'home.stats', { votes: data.stats.votes, targets: data.stats.targets })}</p>
+</section>
+
+<section class="mb-8 grid gap-3 sm:grid-cols-2">
+	<div class="flex flex-col justify-center rounded-lg border border-emerald-900/60 bg-emerald-950/30 px-4 py-3 text-sm">
+		<div class="font-semibold text-emerald-300">🎁 {t(L, 'home.gift')}</div>
+		<a href="/extension" class="mt-2 text-xs text-neutral-400 underline hover:text-neutral-200">🧩 {t(L, 'ext.sub').split('.')[0]}</a>
+	</div>
+	<div class="rounded-lg border border-neutral-900 bg-neutral-950/60 px-4 py-3 text-sm">
+		<div class="mb-1.5 font-semibold text-neutral-200">🐦 {t(L, 'home.byTweet')}</div>
+		<code class="block rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs text-neutral-100">@giveshit_bot @elonmusk 💩</code>
+		<div class="mt-1.5 text-[11px] text-neutral-500">{t(L, 'home.byTweetReply')} <code class="rounded bg-neutral-900 px-1.5 py-0.5 font-mono text-neutral-200">@giveshit_bot 💩</code></div>
 	</div>
 </section>
+
 
 {#snippet row(target: string, total: number, shitScore: number, i: number, right: string | undefined = undefined)}
 	{@const tier = tierFor(shitScore, total)}
@@ -56,9 +55,9 @@
 			<img src="/avatar/{target}" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
 			<span class="min-w-0 flex-1 truncate">@{target}</span>
 			{#if tier.key !== 'unrated'}
-				<span class="hidden shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:inline {tier.badge}">{tier.emoji} {t(L, `tier.${tier.key}.label`)}</span>
+				<span class="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold {tier.badge}" title={t(L, `tier.${tier.key}.label`)}>{tier.emoji}<span class="hidden 2xl:inline"> {t(L, `tier.${tier.key}.label`)}</span></span>
 			{/if}
-			<span class="shrink-0 text-xs text-neutral-500">{right ?? t(L, 'home.votes', { n: total })}</span>
+			<span class="hidden shrink-0 text-xs text-neutral-500 sm:inline">{right ?? t(L, 'home.votes', { n: total })}</span>
 			{#if total >= MIN_VOTES_FOR_TIER}
 				<span class="w-11 shrink-0 text-right text-sm font-semibold {tier.accent}">{shitScore}%</span>
 			{:else}
@@ -81,28 +80,34 @@
 	</div>
 {/snippet}
 
-{#if data.bullshits.length > 0}
-	<section class="mb-8">
-		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">📸 {t(L, 'home.latestBs')}</h2>
-		<div class="flex gap-4 overflow-x-auto pb-3">
-			{#each data.bullshits as b, i (b.id)}
-				<a href="/@{b.target}" class="w-36 shrink-0 rounded-sm bg-[#f5f5f0] p-1.5 shadow-lg transition hover:scale-105" style="transform: rotate({((i * 7) % 5) - 2}deg)">
-					<img src={b.url} alt="" class="w-full" loading="lazy" />
-					<div class="truncate px-0.5 pt-1 text-[10px] text-neutral-600">{b.voterHandle ? `@${b.voterHandle}` : '?'} → @{b.target}</div>
-				</a>
-			{/each}
-		</div>
-	</section>
-{/if}
-
-{#if data.hot.length > 0}
-	<section class="mb-8">
+<section class="mb-8 grid gap-8 sm:grid-cols-2">
+	<div>
 		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'home.hot')}</h2>
-		<ol class="divide-y divide-neutral-900 rounded-lg border border-neutral-900">
-			{#each data.hot as r, i (r.target)}{@render row(r.target, r.total, r.shitScore, i, t(L, 'home.today', { n: r.last24h }))}{/each}
-		</ol>
-	</section>
-{/if}
+		{#if data.hot.length === 0}
+			<p class="text-sm text-neutral-600">—</p>
+		{:else}
+			<ol class="divide-y divide-neutral-900 rounded-lg border border-neutral-900">
+				{#each data.hot.slice(0, 6) as r, i (r.target)}{@render row(r.target, r.total, r.shitScore, i, t(L, 'home.today', { n: r.last24h }))}{/each}
+			</ol>
+		{/if}
+	</div>
+	<div>
+		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">📸 {t(L, 'home.latestBs')}</h2>
+		{#if data.bullshits.length === 0}
+			<p class="text-sm text-neutral-600">{t(L, 'bs.wallEmpty')}</p>
+		{:else}
+			<div class="flex gap-3 overflow-x-auto pb-2">
+				{#each data.bullshits as b, i (b.id)}
+					<a href="/@{b.target}" class="w-28 shrink-0 rounded-sm bg-[#f5f5f0] p-1 shadow-lg transition hover:scale-105" style="transform: rotate({((i * 7) % 5) - 2}deg)">
+						<img src={b.url} alt="" class="w-full" loading="lazy" />
+						<div class="truncate px-0.5 pt-0.5 text-[9px] text-neutral-600">@{b.target}</div>
+					</a>
+				{/each}
+			</div>
+		{/if}
+	</div>
+</section>
+
 
 <section class="grid gap-8 sm:grid-cols-2">
 	{@render board(t(L, 'home.mostShit'), data.shit, t(L, 'home.emptyShit'))}

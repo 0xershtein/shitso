@@ -8,6 +8,7 @@
 	import BullshitCam from '$lib/components/BullshitCam.svelte';
 	import QuadrantMap from '$lib/components/QuadrantMap.svelte';
 	import Pulse from '$lib/components/Pulse.svelte';
+	import Ambient from '$lib/components/Ambient.svelte';
 	import { onMount } from 'svelte';
 	import { pushRecent } from '$lib/recent';
 
@@ -47,6 +48,26 @@
 			: Math.round(((data.stats.last7d - data.stats.prev7d) / data.stats.prev7d) * 100)
 	);
 	const tierLabel = $derived(t(L, `tier.${data.tier.key}.label`));
+	const VERDICT: Record<string, string> = {
+		respected: 'border-emerald-500/50 bg-emerald-950/50 text-emerald-200',
+		questionable: 'border-yellow-500/50 bg-yellow-950/50 text-yellow-200',
+		certified: 'border-amber-500/50 bg-amber-950/50 text-amber-200',
+		biohazard: 'border-red-500/50 bg-red-950/50 text-red-200'
+	};
+	const VERDICT_ICON: Record<string, string> = { respected: '✅', questionable: '🤔', certified: '⚠️', biohazard: '🚫' };
+	const BAD_SHADES = ['bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500', 'bg-rose-400'];
+	const GOOD_SHADES = ['bg-teal-400', 'bg-emerald-500', 'bg-green-500', 'bg-cyan-400', 'bg-sky-400'];
+	function shade(e: { key: string; tone: string }) {
+		const list = EMOJIS.filter((x) => x.tone === e.tone);
+		const i = list.findIndex((x) => x.key === e.key);
+		return e.tone === 'bad' ? BAD_SHADES[i % BAD_SHADES.length] : GOOD_SHADES[i % GOOD_SHADES.length];
+	}
+	const QUAD: Record<string, string> = {
+		admiration: 'border-emerald-500/60 bg-emerald-950/70 text-emerald-200',
+		envy: 'border-yellow-500/60 bg-yellow-950/70 text-yellow-200',
+		pity: 'border-sky-500/60 bg-sky-950/70 text-sky-200',
+		contempt: 'border-red-500/60 bg-red-950/70 text-red-200'
+	};
 	const rated = $derived(data.tally.total > 0);
 	const early = $derived(isProvisional(data.tally.total));
 	const shareText = $derived(
@@ -109,24 +130,20 @@
 
 <div class="pointer-events-none fixed inset-0 -z-10 {data.tier.bg}"></div>
 
-{#if data.tier.hasWarning}
-	<div
-		class="mb-4 flex items-start gap-3 rounded-lg border p-3 text-sm {data.tier.key === 'biohazard'
-			? 'border-red-800 bg-red-950/70 text-red-200'
-			: 'border-amber-800 bg-amber-950/70 text-amber-200'}"
-		role="alert"
-	>
-		<span class="text-xl leading-none">{data.tier.emoji}</span>
-		<p>{t(L, `tier.${data.tier.key}.warning`)}</p>
-	</div>
-{/if}
 
-<section class="flex items-center gap-4 py-4">
-	<img
-		src="/avatar/{data.handle}"
-		alt=""
-		class="size-20 rounded-full bg-neutral-800 ring-4 {data.tier.ring} {data.tier.key === 'biohazard' ? 'grayscale' : ''}"
-	/>
+
+<section class="relative flex items-center gap-4 py-6">
+	{#if rated}<Ambient tier={data.tier.key} seed={data.handle} />{/if}
+	<div class="relative shrink-0">
+		<img
+			src="/avatar/{data.handle}"
+			alt=""
+			class="size-20 rounded-full bg-neutral-800 ring-4 {data.tier.ring} {data.tier.key === 'biohazard' ? 'grayscale' : ''}"
+		/>
+		{#if rated && data.tier.stamp}
+			<span class="absolute -right-4 -bottom-2 rotate-[-12deg] rounded border-2 bg-neutral-950/90 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest {data.tier.stamp}" lang="en">{t('en', `tier.${data.tier.key}.label`)}</span>
+		{/if}
+	</div>
 	<div class="min-w-0 flex-1">
 		<div class="flex flex-wrap items-center gap-2">
 			<h1 class="truncate text-2xl font-black">@{data.handle}</h1>
@@ -142,6 +159,11 @@
 				{#if top}<span class="ml-2 text-sm">{t(L, 'profile.mostly')} {top.char} {t(L, `emoji.${top.key}`)}</span>{/if}
 			{/if}
 		</p>
+		{#if rated && data.read.quadrant}
+			<span class="mt-2 inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-semibold {QUAD[data.read.quadrant]}">
+				<span class="size-1.5 rounded-full bg-current"></span>{t(L, `read.q.${data.read.quadrant}`)}
+			</span>
+		{/if}
 		{#if data.profile && data.profile.followers !== null}
 			<p class="mt-1 text-xs text-neutral-500">
 				{#if data.profile.name}<span class="text-neutral-400">{data.profile.name}</span> · {/if}
@@ -157,6 +179,20 @@
 		{/if}
 	</div>
 </section>
+
+{#if rated}
+	<div class="mb-6 flex items-center gap-4 rounded-xl border px-5 py-4 {VERDICT[data.tier.key] ?? 'border-neutral-800 bg-neutral-900 text-neutral-200'}">
+		<span class="text-4xl leading-none">{VERDICT_ICON[data.tier.key] ?? '❓'}</span>
+		<div class="min-w-0 flex-1">
+			<div class="text-2xl font-black leading-tight">{t(L, `verdict.${data.tier.key}`)}</div>
+			<div class="text-sm opacity-80">{t(L, `verdict.${data.tier.key}.d`)}{#if early} · {t(L, 'verdict.early', { n: data.tally.total, min: MIN_VOTES_FOR_TIER })}{/if}</div>
+		</div>
+		<div class="hidden shrink-0 text-right sm:block">
+			<div class="text-3xl font-black tabular-nums">{100 - data.tally.shitScore}%</div>
+			<div class="text-[10px] uppercase tracking-wider opacity-70">{t(L, 'breakdown.good')}</div>
+		</div>
+	</div>
+{/if}
 
 {#if data.gif}
 	<figure class="mb-6 overflow-hidden rounded-lg border border-neutral-900 bg-neutral-900">
@@ -263,6 +299,28 @@
 		{@render stat(t(L, 'profile.last24h'), data.stats.last24h, data.stats.prev24h ? t(L, 'profile.dayBefore', { n: data.stats.prev24h }) : undefined)}
 		{@render stat(t(L, 'profile.mindChanges'), Math.max(0, data.stats.changes - data.stats.voters), t(L, 'profile.editedOrRemoved'))}
 		{@render stat(t(L, 'profile.lastShit'), ago(L, data.stats.lastAt), data.stats.firstAt ? t(L, 'profile.first', { t: ago(L, data.stats.firstAt) }) : undefined)}
+	</section>
+
+	<section class="mt-10">
+		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'voters.title')} · {data.voters.length}</h2>
+		{#if data.voters.length === 0}
+			<p class="text-sm text-neutral-600">{t(L, 'voters.empty')}</p>
+		{:else}
+			<ul class="flex flex-wrap gap-2">
+				{#each data.voters as v (v.handle)}
+					{@const e = emojiByKey(v.emoji)}
+					<li>
+						<a href="/@{v.handle}" title="@{v.handle} · {e ? t(L, `emoji.${e.key}`) : ''} · {ago(L, v.at)}" class="group flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-950/60 py-1 pr-3 pl-1 text-xs hover:border-neutral-600">
+							<span class="relative">
+								<img src="/avatar/{v.handle}" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
+								<span class="absolute -right-1.5 -bottom-1.5 rounded-full bg-neutral-950 px-0.5 text-sm leading-none">{e?.char ?? '❓'}</span>
+							</span>
+							<span class="max-w-28 truncate text-neutral-300 group-hover:text-white">@{v.handle}</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		{/if}
 	</section>
 
 	<section class="mt-10">
@@ -390,19 +448,41 @@
 	</section>
 
 	<section class="mt-10">
-		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'profile.breakdown')}</h2>
-		<ul class="space-y-1.5">
+		<div class="mb-3 flex items-baseline justify-between">
+			<h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'profile.breakdown')}</h2>
+			<p class="text-xs text-neutral-500">
+				<span class="font-bold text-amber-400">{data.tally.shitScore}%</span> {t(L, 'breakdown.bad')} ·
+				<span class="font-bold text-emerald-400">{100 - data.tally.shitScore}%</span> {t(L, 'breakdown.good')}
+			</p>
+		</div>
+		<div class="flex h-4 w-full overflow-hidden rounded-full bg-neutral-900">
 			{#each EMOJIS as e (e.key)}
 				{@const n = data.tally.counts[e.key] ?? 0}
-				<li class="flex items-center gap-3 text-sm">
-					<span class="w-6 text-center text-lg" title={t(L, `emoji.${e.key}`)}>{e.char}</span>
-					<div class="h-2 flex-1 overflow-hidden rounded bg-neutral-900">
-						<div class="h-full {e.tone === 'bad' ? 'bg-amber-500' : 'bg-emerald-500'}" style="width: {(n / max) * 100}%"></div>
-					</div>
-					<span class="w-8 text-right tabular-nums text-neutral-400">{n}</span>
-				</li>
+				{#if n > 0}
+					<div class="{shade(e)} transition-all" style="width: {(n / data.tally.total) * 100}%" title="{e.char} {t(L, `emoji.${e.key}`)} · {n}"></div>
+				{/if}
 			{/each}
-		</ul>
+		</div>
+		<div class="mt-4 grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
+			{#each ['bad', 'good'] as tone (tone)}
+				<div>
+					<div class="mb-1.5 text-[10px] font-semibold uppercase tracking-wider {tone === 'bad' ? 'text-amber-500' : 'text-emerald-500'}">{t(L, `breakdown.${tone}`)}</div>
+					{#each EMOJIS.filter((e) => e.tone === tone) as e (e.key)}
+						{@const n = data.tally.counts[e.key] ?? 0}
+						{@const pct = data.tally.total ? Math.round((n / data.tally.total) * 100) : 0}
+						<div class="flex items-center gap-2 py-0.5 text-sm {n === 0 ? 'opacity-40' : ''}">
+							<span class="w-7 text-center text-xl leading-none">{e.char}</span>
+							<span class="w-24 truncate text-neutral-300">{t(L, `emoji.${e.key}`)}</span>
+							<div class="h-1.5 flex-1 overflow-hidden rounded bg-neutral-900">
+								<div class="h-full {shade(e)}" style="width: {pct}%"></div>
+							</div>
+							<span class="w-10 text-right tabular-nums text-neutral-400">{pct}%</span>
+							<span class="w-6 text-right text-xs tabular-nums text-neutral-600">{n}</span>
+						</div>
+					{/each}
+				</div>
+			{/each}
+		</div>
 	</section>
 {/if}
 
