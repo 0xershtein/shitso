@@ -93,13 +93,15 @@ export async function renderOg(i: OgInput): Promise<Buffer> {
 		[
 			h('div', { display: 'flex', alignItems: 'center', gap: 36 }, [
 				img
-					? h('img', {
-							width: 160,
-							height: 160,
-							borderRadius: 999,
-							border: `8px solid ${ACCENT[i.tier.key]}`,
-							src: img
-						})
+					? {
+							type: 'img',
+							props: {
+								src: img,
+								width: 160,
+								height: 160,
+								style: { borderRadius: 999, border: `8px solid ${ACCENT[i.tier.key]}` }
+							}
+						}
 					: h('div', { width: 160, height: 160, borderRadius: 999, background: '#262626' }),
 				h('div', { display: 'flex', flexDirection: 'column', gap: 10 }, [
 					h('div', { fontSize: 56, letterSpacing: -2 }, `@${i.handle}`),
