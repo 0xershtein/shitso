@@ -91,7 +91,7 @@
 		<img src={data.gif.url} alt={data.gif.title} class="mx-auto max-h-56" loading="lazy" />
 		<figcaption class="flex justify-between px-3 py-1.5 text-[11px] text-neutral-500">
 			<span>the internet's reaction</span>
-			<a href={data.gif.page} target="_blank" rel="noopener" class="hover:text-neutral-300">via GIPHY</a>
+			<a href={data.gif.page} target="_blank" rel="noopener" class="hover:text-neutral-300">via {data.gif.via}</a>
 		</figcaption>
 	</figure>
 {/if}
