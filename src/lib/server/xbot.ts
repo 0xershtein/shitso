@@ -1,4 +1,4 @@
-// @shitdotso — vote by tweet. "@shitdotso @target 💩" casts a vote from the tweet's author.
+// @giveshit_bot — vote by tweet. "@giveshit_bot @target 💩" casts a vote from the tweet's author.
 import { Redis } from '@upstash/redis';
 import { env } from '$env/dynamic/private';
 import { EMOJIS, normalizeHandle } from '$lib/emojis';
@@ -76,7 +76,7 @@ async function botId(): Promise<{ id: string; username: string }> {
 	const res = await xfetch('/users/me');
 	if (!res.ok) throw new Error(`users/me ${res.status}`);
 	const j = (await res.json()) as { data: { id: string; username: string } };
-	await r?.set('xbot:me', j.data);
+	await r?.set('xbot:me', j.data, { ex: 3600 }); // handle can be renamed; re-read hourly
 	return j.data;
 }
 
@@ -100,8 +100,9 @@ const EMOJI_BY_CHAR = new Map(EMOJIS.map((e) => [e.char, e.key]));
 // 🫡 and ☣️ carry variation selectors in some clients; normalize by stripping FE0F.
 const strip = (s: string) => s.replace(/️/g, '');
 
-function parse(m: Mention, bot: string): { target: string | null; emoji: string | null } {
-	const others = (m.entities?.mentions ?? []).map((x) => x.username.toLowerCase()).filter((u) => u !== bot.toLowerCase());
+function parse(m: Mention, botId: string): { target: string | null; emoji: string | null } {
+	// exclude the bot by id, so a renamed bot account never becomes its own target
+	const others = (m.entities?.mentions ?? []).filter((x) => x.id !== botId).map((x) => x.username.toLowerCase());
 	const target = others.length ? normalizeHandle(others[0]) : null;
 	let emoji: string | null = null;
 	const text = strip(m.text);
@@ -167,10 +168,10 @@ export async function runOnce(): Promise<RunResult> {
 			continue;
 		}
 		const author = users.get(m.author_id);
-		const { target, emoji } = parse(m, me.username);
+		const { target, emoji } = parse(m, me.id);
 		const L: Locale = m.lang === 'tr' ? 'tr' : 'en';
 		let reply: string | null = null;
-		if (!author || !target || target === me.username.toLowerCase()) {
+		if (!author || !target) {
 			out.skipped.push(`${m.id}:no-target`);
 		} else if (target === author.username.toLowerCase()) {
 			reply = `@${author.username} ${t(L, 'vote.self')}`;
