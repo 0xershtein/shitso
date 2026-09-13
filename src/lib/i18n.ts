@@ -103,6 +103,7 @@ const en: Dict = {
 	'v.volatile': 'volatile',
 	'v.blow': 'about to blow up',
 
+	'tier.early': 'early read',
 	'tier.unrated.label': 'unrated',
 	'tier.unrated.blurb': 'nobody has given a shit yet.',
 	'tier.respected.label': 'respected',
@@ -180,7 +181,7 @@ const en: Dict = {
 	'bs.show': 'show the wall again',
 	'bs.hiddenNote': 'you hid the bullshit wall. nobody sees it, including you.',
 	'read.title': 'the read',
-	'read.pending': 'needs {n} votes for a read.',
+	'read.pending': 'needs {n} vote for a read.',
 	'read.warmth': 'warmth',
 	'read.warmth.lo': 'cold',
 	'read.warmth.hi': 'warm',
@@ -328,6 +329,7 @@ const tr: Dict = {
 	'v.volatile': 'oynak',
 	'v.blow': 'patlamak üzere',
 
+	'tier.early': 'erken okuma',
 	'tier.unrated.label': 'puansız',
 	'tier.unrated.blurb': 'henüz kimse bir shit vermedi.',
 	'tier.respected.label': 'saygın',

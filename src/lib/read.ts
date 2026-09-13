@@ -66,7 +66,7 @@ export interface Read {
 	source: { key: Source['key']; url: string };
 }
 
-export const MIN_VOTES_FOR_READ = 3;
+export const MIN_VOTES_FOR_READ = 1;
 
 export function readFor(counts: Record<string, number>): Read {
 	const total = Object.values(counts).reduce((a, b) => a + b, 0);

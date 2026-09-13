@@ -54,7 +54,7 @@
 			{#if total >= MIN_VOTES_FOR_TIER}
 				<span class="w-11 shrink-0 text-right text-sm font-semibold {tier.accent}">{shitScore}%</span>
 			{:else}
-				<span class="w-11 shrink-0 text-right text-xs text-neutral-600" title={t(L, 'profile.tierPending')}>—</span>
+				<span class="w-11 shrink-0 text-right text-sm text-neutral-500" title={t(L, 'tier.early')}>{shitScore}%</span>
 			{/if}
 		</a>
 	</li>

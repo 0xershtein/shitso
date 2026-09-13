@@ -62,10 +62,15 @@ const TIERS: Record<Tier['key'], Tier> = {
 	}
 };
 
+/** Votes needed before a tier counts as confirmed; below it the page says "early read". */
 export const MIN_VOTES_FOR_TIER = 3;
 
+export function isProvisional(total: number): boolean {
+	return total > 0 && total < MIN_VOTES_FOR_TIER;
+}
+
 export function tierFor(shitScore: number, total: number): Tier {
-	if (total < MIN_VOTES_FOR_TIER) return TIERS.unrated;
+	if (total === 0) return TIERS.unrated;
 	if (shitScore >= 80) return TIERS.biohazard;
 	if (shitScore >= 50) return TIERS.certified;
 	if (shitScore >= 25) return TIERS.questionable;

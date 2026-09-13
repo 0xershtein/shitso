@@ -66,13 +66,12 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown) => 
 
 export async function renderOg(i: OgInput): Promise<Buffer> {
 	const img = await avatarDataUrl(i.handle);
-	const rated = i.total >= 3;
+	const rated = i.total > 0;
+	const early = i.total > 0 && i.total < 3;
 	const headline = rated ? `${i.shitScore}% shit` : 'unrated';
 	const sub = rated
-		? `${i.total} ${i.total === 1 ? 'person' : 'people'} gave a shit${i.archetype ? ` · ${i.archetype}` : ''}${i.topChar ? ` · mostly ${i.topChar}` : ''}`
-		: i.total > 0
-			? `${i.total} ${i.total === 1 ? 'vote' : 'votes'} so far. needs 3 for a verdict.`
-			: 'nobody has given a shit yet. be first.';
+		? `${i.total} ${i.total === 1 ? 'person' : 'people'} gave a shit${early ? ' · early read' : ''}${i.archetype ? ` · ${i.archetype}` : ''}${i.topChar ? ` · mostly ${i.topChar}` : ''}`
+		: 'nobody has given a shit yet. be first.';
 
 	const tree = h(
 		'div',

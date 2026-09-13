@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { EMOJIS, emojiByKey } from '$lib/emojis';
-	import { MIN_VOTES_FOR_TIER } from '$lib/tiers';
+	import { MIN_VOTES_FOR_TIER, isProvisional } from '$lib/tiers';
 	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
 	import { ago, t } from '$lib/i18n';
 	import { invalidateAll } from '$app/navigation';
@@ -47,7 +47,8 @@
 			: Math.round(((data.stats.last7d - data.stats.prev7d) / data.stats.prev7d) * 100)
 	);
 	const tierLabel = $derived(t(L, `tier.${data.tier.key}.label`));
-	const rated = $derived(data.tally.total >= MIN_VOTES_FOR_TIER);
+	const rated = $derived(data.tally.total > 0);
+	const early = $derived(isProvisional(data.tally.total));
 	const shareText = $derived(
 		rated
 			? t(L, 'profile.shareRated', {
@@ -92,7 +93,7 @@
 <div bind:this={burstLayer} class="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true"></div>
 
 <svelte:head>
-	<title>@{data.handle} · {rated ? tierLabel : t(L, 'profile.tierPending')} · shit.so</title>
+	<title>@{data.handle} · {rated ? `${data.tally.shitScore}% shit · ${tierLabel}` : t(L, 'profile.tierPending')} · shit.so</title>
 	<meta name="description" content="@{data.handle}: {data.tally.shitScore}% shit, {data.tally.total} votes, {t('en', `tier.${data.tier.key}.label`)}. give yours on shit.so." />
 	<link rel="canonical" href="https://shit.so/@{data.handle}" />
 	<meta property="og:type" content="profile" />
@@ -129,7 +130,7 @@
 	<div class="min-w-0 flex-1">
 		<div class="flex flex-wrap items-center gap-2">
 			<h1 class="truncate text-2xl font-black">@{data.handle}</h1>
-			<span class="rounded-full border px-2 py-0.5 text-xs font-semibold {data.tier.badge}">{data.tier.emoji} {tierLabel}</span>
+			<span class="rounded-full border px-2 py-0.5 text-xs font-semibold {data.tier.badge}">{data.tier.emoji} {tierLabel}{#if early}<span class="ml-1 font-normal opacity-70">· {t(L, 'tier.early')}</span>{/if}</span>
 			<a href="https://x.com/{data.handle}" target="_blank" rel="noopener" class="text-xs text-neutral-500 hover:text-neutral-300">{t(L, 'profile.x')}</a>
 		</div>
 		<p class="mt-1 text-neutral-400">
@@ -151,10 +152,8 @@
 				{/if}
 			</p>
 		{/if}
-		{#if data.tally.total > 0 && !rated}
-			<p class="mt-1 text-xs text-neutral-500">{t(L, 'profile.moreVotes', { n: MIN_VOTES_FOR_TIER - data.tally.total, votes: votesWord(MIN_VOTES_FOR_TIER - data.tally.total) })}</p>
-		{:else if data.tally.total > 0}
-			<p class="mt-1 text-xs text-neutral-500">{t(L, `tier.${data.tier.key}.blurb`)}</p>
+		{#if data.tally.total > 0}
+			<p class="mt-1 text-xs text-neutral-500">{t(L, `tier.${data.tier.key}.blurb`)}{#if early} {t(L, 'profile.moreVotes', { n: MIN_VOTES_FOR_TIER - data.tally.total, votes: votesWord(MIN_VOTES_FOR_TIER - data.tally.total) })}{/if}</p>
 		{/if}
 	</div>
 </section>
@@ -310,7 +309,7 @@
 	<section class="mt-10">
 		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'read.title')}</h2>
 		{#if !data.read.ready}
-			<p class="text-sm text-neutral-500">{t(L, 'read.pending', { n: MIN_VOTES_FOR_TIER })}</p>
+			<p class="text-sm text-neutral-500">{t(L, 'read.pending', { n: 1 })}</p>
 		{:else}
 			<div class="grid gap-4 sm:grid-cols-[1fr_1.2fr]">
 				<div>
@@ -334,6 +333,7 @@
 				</div>
 				<div class="flex flex-col justify-between rounded-lg border border-neutral-900 bg-neutral-950/60 p-5">
 					<div>
+						{#if early}<div class="mb-2 inline-block rounded bg-amber-950/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">{t(L, 'tier.early')} · {data.tally.total}/{MIN_VOTES_FOR_TIER}</div>{/if}
 						<div class="text-[11px] uppercase tracking-wider text-neutral-500">{t(L, 'read.quadrant')}</div>
 						<div class="mt-1 text-lg font-bold {data.tier.accent}">{t(L, `read.q.${data.read.quadrant}`)}</div>
 						<div class="mt-4 text-[11px] uppercase tracking-wider text-neutral-500">{t(L, 'read.archetype')}</div>

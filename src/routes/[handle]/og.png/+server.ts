@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		topChar: t.top ? (emojiByKey(t.top)?.char ?? null) : null,
 		archetype: (() => {
 			const r = readFor(t.counts);
-			return r.ready ? tr('en', `read.a.${r.archetype}`) : null;
+			return r.ready && t.total >= 3 ? tr('en', `read.a.${r.archetype}`) : null;
 		})()
 	});
 	return new Response(new Uint8Array(png), {
