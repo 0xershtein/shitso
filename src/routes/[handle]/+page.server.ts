@@ -1,5 +1,14 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { castVote, myVote, removeVote, rhythmFor, statsFor, tallyFor } from '$lib/server/db/queries';
+import {
+	VOTE_COOLDOWN_SECONDS,
+	castVote,
+	myVote,
+	onCooldown,
+	removeVote,
+	rhythmFor,
+	statsFor,
+	tallyFor
+} from '$lib/server/db/queries';
 import { gifFor } from '$lib/server/giphy';
 import { EMOJI_KEYS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
@@ -50,6 +59,8 @@ export const actions: Actions = {
 		if (session.user.handle === handle) return fail(400, { error: 'you cannot rate yourself, nice try' });
 		const elig = eligibility(session.user);
 		if (!elig.ok) return fail(403, { error: elig.reason });
+		if (await onCooldown(session.user.id, handle))
+			return fail(429, { error: `easy. wait ${VOTE_COOLDOWN_SECONDS} seconds between changes.` });
 
 		const form = await request.formData();
 		const emoji = String(form.get('emoji') ?? '');

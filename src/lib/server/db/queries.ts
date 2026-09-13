@@ -60,6 +60,23 @@ export async function myVote(voterId: string, target: string): Promise<string | 
 	return row?.emoji ?? null;
 }
 
+export const VOTE_COOLDOWN_SECONDS = 10;
+
+/** True when the voter touched this target within the cooldown window. */
+export async function onCooldown(voterId: string, target: string): Promise<boolean> {
+	const [row] = await db
+		.select({ n: sql<number>`count(*)::int` })
+		.from(voteEvents)
+		.where(
+			and(
+				eq(voteEvents.voterId, voterId),
+				eq(voteEvents.target, target),
+				gte(voteEvents.createdAt, sql`now() - ${sql.raw(`interval '${VOTE_COOLDOWN_SECONDS} seconds'`)}`)
+			)
+		);
+	return (row?.n ?? 0) > 0;
+}
+
 export async function castVote(
 	voterId: string,
 	voterHandle: string | null,

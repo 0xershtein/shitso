@@ -32,6 +32,7 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 	secret: env.AUTH_SECRET,
 	providers,
 	session: { strategy: 'jwt' },
+	pages: { signIn: '/signin', error: '/auth/error' },
 	callbacks: {
 		jwt({ token, account, profile }) {
 			if (account) {
