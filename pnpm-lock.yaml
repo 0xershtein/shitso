@@ -7,6 +7,9 @@ dependencies:
   '@resvg/resvg-js':
     specifier: ^2.6.2
     version: 2.6.2
+  harfbuzzjs:
+    specifier: 0.10.0
+    version: 0.10.0
   satori:
     specifier: ^0.33.4
     version: 0.33.4

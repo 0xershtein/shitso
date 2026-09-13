@@ -38,6 +38,7 @@
 	"dependencies": {
 		"@auth/sveltekit": "^1.11.3",
 		"@resvg/resvg-js": "^2.6.2",
+		"harfbuzzjs": "0.10.0",
 		"satori": "^0.33.4"
 	}
 }
