@@ -284,12 +284,12 @@
 								<span class="absolute top-2 left-0 bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">{t(L, 'bs.pending')}</span>
 							{/if}
 						</div>
-						<figcaption class="flex items-center justify-between px-0.5 pt-1 text-[10px] text-neutral-600">
+						<figcaption class="flex flex-col gap-0.5 px-0.5 pt-1 text-[10px] text-neutral-600">
 							<span class="truncate">{b.voterHandle ? `@${b.voterHandle}` : '?'} · {ago(L, b.createdAt, true)}</span>
 							{#if b.mine}
-								<button onclick={() => bsAction({ handle: data.handle, action: 'delete' })} disabled={wallBusy} class="text-red-700 hover:underline">{t(L, 'bs.delete')}</button>
+								<button onclick={() => bsAction({ handle: data.handle, action: 'delete' })} disabled={wallBusy} class="self-start text-red-700 hover:underline">{t(L, 'bs.delete')}</button>
 							{:else if data.session?.user}
-								<button onclick={() => reportBs(b.id)} disabled={reported.has(b.id)} class="hover:underline disabled:opacity-60">{reported.has(b.id) ? t(L, 'bs.reported') : t(L, 'bs.report')}</button>
+								<button onclick={() => reportBs(b.id)} disabled={reported.has(b.id)} class="self-start hover:underline disabled:opacity-60">{reported.has(b.id) ? t(L, 'bs.reported') : t(L, 'bs.report')}</button>
 							{/if}
 						</figcaption>
 					</figure>
