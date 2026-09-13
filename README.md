@@ -19,6 +19,10 @@ Built in public by [@erendotdmg](https://x.com/erendotdmg), largely with Claude 
 - **Chrome extension** (`extension/`): shows a `💩 42% shit · 17 votes · give yours →` badge under every X profile header.
 - English / Turkish, picked from `Accept-Language`, switchable in the footer.
 
+## Vote by tweet
+
+Tweet `@giveshit_bot @handle 💩` (any of the ten emojis). The tweet's author is the voter, no login needed; the bot replies with the score and a link. Poller: `/api/cron/xbot`, called every 5 minutes by GitHub Actions.
+
 ## Stack
 
 SvelteKit 2 · Svelte 5 · Tailwind 4 · Drizzle + Neon Postgres · Auth.js (X OAuth 2.0) · satori + resvg for OG images · Vercel.

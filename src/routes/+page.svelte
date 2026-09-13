@@ -38,6 +38,11 @@
 		{#each EMOJIS as e (e.key)}<span title={t(L, `emoji.${e.key}`)}>{e.char}</span>{/each}
 	</div>
 	<p class="mt-2 text-xs text-neutral-600">{t(L, 'home.stats', { votes: data.stats.votes, targets: data.stats.targets })}</p>
+	<div class="mx-auto mt-6 max-w-md rounded-lg border border-neutral-900 bg-neutral-950/60 px-4 py-3 text-left text-sm">
+		<div class="text-neutral-400">{t(L, 'home.byTweet')}</div>
+		<code class="mt-1 block rounded bg-neutral-900 px-3 py-2 font-mono text-neutral-100">@giveshit_bot @elonmusk 💩</code>
+		<div class="mt-1 text-xs text-neutral-500">{t(L, 'home.byTweetHint')}</div>
+	</div>
 </section>
 
 {#snippet row(target: string, total: number, shitScore: number, i: number, right: string | undefined = undefined)}

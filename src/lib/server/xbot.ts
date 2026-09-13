@@ -127,7 +127,8 @@ function replyText(L: Locale, target: string, counts: Record<string, number>, to
 	const arch = read.ready ? t(L, `read.a.${read.archetype}`) : null;
 	const votes = t(L, total === 1 ? 'profile.vote' : 'profile.votes');
 	const early = total < 3 ? ` · ${t(L, 'tier.early')}` : '';
-	return `@${target} ${shitScore}% shit · ${tier.emoji} ${label}${arch ? ` · ${arch}` : ''} · ${total} ${votes}${early}\nhttps://shit.so/@${target}`;
+	// X already tags the target through the reply chain, so the text starts with the verdict.
+	return `${shitScore}% shit · ${tier.emoji} ${label}${arch ? ` · ${arch}` : ''} · ${total} ${votes}${early}\nhttps://shit.so/@${target}`;
 }
 
 export interface RunResult {
@@ -161,14 +162,14 @@ async function handle(list: Mention[], userList: XUser[], opts: { skipAge: boole
 		if (!author || !target) {
 			out.skipped.push(`${m.id}:no-target`);
 		} else if (target === author.username.toLowerCase()) {
-			reply = `@${author.username} ${t(L, 'vote.self')}`;
+			reply = t(L, 'vote.self');
 		} else if (emoji) {
 			const elig = eligibility(
 				{ provider: 'twitter', handle: author.username.toLowerCase(), followers: author.public_metrics?.followers_count ?? null, accountCreatedAt: author.created_at ?? null },
 				exemptList
 			);
 			if (!elig.ok) {
-				reply = `@${author.username} ${t(L, elig.key, elig.vars)}`;
+				reply = t(L, elig.key, elig.vars);
 			} else {
 				await castVote(`twitter:${author.id}`, author.username.toLowerCase(), target, emoji);
 				forget(`p:${target}:`);
@@ -181,7 +182,7 @@ async function handle(list: Mention[], userList: XUser[], opts: { skipAge: boole
 		} else {
 			// summon without an emoji: just the card
 			const tally = await tallyFor(target);
-			reply = tally.total ? replyText(L, target, tally.counts, tally.total, tally.shitScore) : `@${target} ${t(L, 'profile.nobody')} https://shit.so/@${target}`;
+			reply = tally.total ? replyText(L, target, tally.counts, tally.total, tally.shitScore) : `${t(L, 'profile.nobody')} https://shit.so/@${target}`;
 		}
 		if (reply) {
 			// keep the reply clean: only the author and the target get tagged
