@@ -15,7 +15,7 @@ import { tierFor, viralityFor } from '$lib/tiers';
 import { eligibility } from '$lib/eligibility';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const handle = normalizeHandle(params.handle);
 	if (!handle) error(404, 'not an X handle');
 	if (handle !== params.handle) redirect(301, `/${handle}`);
@@ -38,6 +38,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	return {
 		handle,
+		origin: url.origin,
 		tally,
 		mine,
 		stats,
