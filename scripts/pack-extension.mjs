@@ -10,7 +10,7 @@ const files = {};
 
 function walk(dir) {
 	for (const name of readdirSync(dir)) {
-		if (name === 'README.md' || name === '.DS_Store') continue;
+		if (name === 'README.md' || name === '.DS_Store' || name === '.github') continue;
 		const p = join(dir, name);
 		if (statSync(p).isDirectory()) walk(p);
 		else files[relative(SRC, p).split('\\').join('/')] = readFileSync(p);
