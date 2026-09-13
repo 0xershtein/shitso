@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { EMOJIS, emojiByKey } from '$lib/emojis';
 	import { MIN_VOTES_FOR_TIER } from '$lib/tiers';
+	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
 	import Reaction from '$lib/components/Reaction.svelte';
 
 	let { data, form } = $props();
@@ -145,7 +146,9 @@
 			{/if}
 		</form>
 		{#if !data.session?.user}
-			<p class="mt-2 text-xs text-neutral-500">you'll be asked to sign in with X first.</p>
+			<p class="mt-2 text-xs text-neutral-500">you'll be asked to sign in with X first. {MIN_FOLLOWERS}+ followers, {MIN_ACCOUNT_AGE_DAYS}+ day old account.</p>
+		{:else if data.eligible && !data.eligible.ok}
+			<p class="mt-2 text-xs text-amber-400">{data.eligible.reason}</p>
 		{/if}
 		{#if form?.error}<p class="mt-2 text-sm text-red-400">{form.error}</p>{/if}
 	{/if}

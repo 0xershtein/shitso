@@ -33,7 +33,7 @@
 	</main>
 
 	<footer class="py-6 text-xs text-neutral-600">
-		one X account, one vote per person. change your mind anytime. ·
+		one X account, one vote per person. 10+ followers, 7+ day old account. change your mind anytime. ·
 		<a href="https://x.com/erendotdmg" class="underline hover:text-neutral-400">@erendotdmg</a>
 	</footer>
 </div>

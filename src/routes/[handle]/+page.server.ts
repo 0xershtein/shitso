@@ -3,6 +3,7 @@ import { castVote, myVote, removeVote, rhythmFor, statsFor, tallyFor } from '$li
 import { gifFor } from '$lib/server/giphy';
 import { EMOJI_KEYS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
+import { eligibility } from '$lib/eligibility';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -35,7 +36,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		tier,
 		virality,
 		gif,
-		isSelf: session?.user?.handle === handle
+		isSelf: session?.user?.handle === handle,
+		eligible: session?.user ? eligibility(session.user) : null
 	};
 };
 
@@ -46,6 +48,8 @@ export const actions: Actions = {
 		const session = await locals.auth();
 		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/${handle}`);
 		if (session.user.handle === handle) return fail(400, { error: 'you cannot rate yourself, nice try' });
+		const elig = eligibility(session.user);
+		if (!elig.ok) return fail(403, { error: elig.reason });
 
 		const form = await request.formData();
 		const emoji = String(form.get('emoji') ?? '');

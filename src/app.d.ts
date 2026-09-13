@@ -6,18 +6,14 @@ declare module '@auth/sveltekit' {
 			id: string;
 			provider: string;
 			handle: string | null;
+			followers: number | null;
+			accountCreatedAt: string | null;
 		} & DefaultSession['user'];
 	}
 }
 
 declare global {
-	namespace App {
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
-	}
+	namespace App {}
 }
 
 export {};
