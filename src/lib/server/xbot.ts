@@ -101,18 +101,29 @@ const EMOJI_BY_CHAR = new Map(EMOJIS.map((e) => [e.char, e.key]));
 // 🫡 and ☣️ carry variation selectors in some clients; normalize by stripping FE0F.
 const strip = (s: string) => s.replace(/️/g, '');
 
-function parse(m: Mention, botId: string): { target: string | null; targetId: string | null; emoji: string | null } {
+function parse(m: Mention, botId: string, users?: Map<string, XUser>): { target: string | null; targetId: string | null; emoji: string | null } {
 	const ms = [...(m.entities?.mentions ?? [])].sort((a, b) => a.start - b.start);
 	const botAt = ms.find((x) => x.id === botId)?.start ?? -1;
 	// X prepends the reply chain (@personYouReplyTo …) to the text; the intended target is
 	// the first handle the author typed after the bot's handle.
+	// Explicit target: the first handle typed after the bot. Otherwise, when the tweet is a
+	// reply, the person being replied to is the target ("@giveshit_bot 💩" under their tweet).
 	let pick = ms.find((x) => x.id !== botId && x.start > botAt);
+	if (!pick && m.in_reply_to_user_id && m.in_reply_to_user_id !== botId) {
+		const replied = ms.find((x) => x.id === m.in_reply_to_user_id);
+		if (replied) pick = replied;
+		else if (users?.get(m.in_reply_to_user_id)) {
+			const u = users.get(m.in_reply_to_user_id)!;
+			pick = { id: u.id, username: u.username, start: -1, end: -1 };
+		}
+	}
 	if (!pick) pick = ms.find((x) => x.id !== botId && x.id !== m.in_reply_to_user_id);
 	const target = pick ? normalizeHandle(pick.username) : null;
 	// The vote is the FIRST emoji written after the target's handle (text order, not list order),
 	// so a tweet that also lists all ten emojis later still votes what the author meant.
 	const text = strip(m.text);
-	const from = pick ? Math.min(text.length, strip(m.text.slice(0, pick.end)).length) : 0;
+	const anchorEnd = pick && pick.end >= 0 ? pick.end : botAt >= 0 ? (ms.find((x) => x.id === botId)?.end ?? 0) : 0;
+	const from = Math.min(text.length, strip(m.text.slice(0, anchorEnd)).length);
 	let emoji: string | null = null;
 	let best = Infinity;
 	for (const [char, key] of EMOJI_BY_CHAR) {
@@ -170,7 +181,7 @@ async function handle(list: Mention[], userList: XUser[], opts: { skipAge: boole
 			continue;
 		}
 		const author = users.get(m.author_id);
-		const { target, targetId, emoji } = parse(m, me.id);
+		const { target, targetId, emoji } = parse(m, me.id, users);
 		const L: Locale = m.lang === 'tr' ? 'tr' : 'en';
 		let reply: string | null = null;
 		if (!author || !target) {
@@ -221,7 +232,7 @@ export async function replay(tweetId: string): Promise<RunResult> {
 	const q = new URLSearchParams({
 		ids: tweetId,
 		'tweet.fields': 'author_id,entities,lang,created_at,in_reply_to_user_id',
-		expansions: 'author_id',
+		expansions: 'author_id,in_reply_to_user_id',
 		'user.fields': 'username,public_metrics,created_at,profile_image_url'
 	});
 	const res = await xfetch(`/tweets?${q}`);
@@ -245,7 +256,7 @@ export async function runOnce(): Promise<RunResult> {
 	const q = new URLSearchParams({
 		max_results: '50',
 		'tweet.fields': 'author_id,entities,lang,created_at,in_reply_to_user_id',
-		expansions: 'author_id',
+		expansions: 'author_id,in_reply_to_user_id',
 		'user.fields': 'username,public_metrics,created_at,profile_image_url'
 	});
 	if (since) q.set('since_id', since);

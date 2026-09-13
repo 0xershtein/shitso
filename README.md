@@ -21,7 +21,7 @@ Built in public by [@erendotdmg](https://x.com/erendotdmg), largely with Claude 
 
 ## Vote by tweet
 
-Tweet `@giveshit_bot @handle 💩` (any of the ten emojis). The tweet's author is the voter, no login needed; the bot replies with the score and a link. Poller: `/api/cron/xbot`, called every 5 minutes by GitHub Actions.
+Tweet `@giveshit_bot @handle 💩` (any of the ten emojis), or reply to someone's tweet with just `@giveshit_bot 💩`. The tweet's author is the voter, no login needed; the bot replies with the score and a link. Poller: `/api/cron/xbot`, called every 5 minutes by GitHub Actions.
 
 ## Stack
 
