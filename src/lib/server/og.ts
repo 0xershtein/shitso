@@ -1,14 +1,9 @@
 import satori from 'satori';
-import { createRequire } from 'node:module';
 import { Resvg } from '@resvg/resvg-js';
 import fontDataUrl from './fonts/Inter-ExtraBold.ttf?inline';
 import type { Tier } from '$lib/tiers';
 
-// satori shapes text with harfbuzzjs, which reads hb.wasm from disk at runtime.
-// A static require.resolve keeps the file in Vercel's traced function bundle.
-const require = createRequire(import.meta.url);
-void require.resolve('harfbuzzjs/hb.wasm');
-
+// satori shapes text with harfbuzzjs, whose hb.wasm is copied into the Vercel bundle by scripts/postbuild.mjs.
 const font = Buffer.from(fontDataUrl.split(',')[1], 'base64');
 const emojiCache = new Map<string, string>();
 
