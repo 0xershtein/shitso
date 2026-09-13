@@ -28,6 +28,7 @@
 		<span class="text-lg">🎁</span>{t(L, 'home.gift')}
 	</p>
 
+	<p class="mt-2 text-xs text-neutral-500"><a href="/extension" class="underline hover:text-neutral-300">🧩 {t(L, 'ext.sub').split('.')[0]}</a></p>
 	<div class="mt-8">
 		<Search locale={L} popular={(data.hot.length ? data.hot : data.shit).map((r) => ({ handle: r.target, total: r.total, shitScore: r.shitScore, tier: tierFor(r.shitScore, r.total).key }))} />
 	</div>

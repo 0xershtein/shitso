@@ -65,7 +65,9 @@
 	<footer class="flex flex-wrap items-center justify-between gap-2 py-6 text-xs text-neutral-600">
 		<span>
 			{t(L, 'footer.rule', { f: MIN_FOLLOWERS, d: MIN_ACCOUNT_AGE_DAYS })} ·
-			<a href="https://x.com/erendotdmg" class="underline hover:text-neutral-400">@erendotdmg</a>
+			<a href="https://x.com/erendotdmg" class="underline hover:text-neutral-400">@erendotdmg</a> ·
+			<a href="/extension" class="underline hover:text-neutral-400">🧩 {t(L, 'ext.title')}</a> ·
+			<a href="https://github.com/0xershtein/shitso" class="underline hover:text-neutral-400">github</a>
 		</span>
 		<span class="flex gap-2">
 			{#each LOCALES as l (l)}

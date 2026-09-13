@@ -38,7 +38,14 @@ Optional: `GIPHY_API_KEY` or `TENOR_API_KEY` enables a reaction gif per tier.
 
 ## Extension
 
-`chrome://extensions` → Developer mode → Load unpacked → pick `extension/`.
+No Chrome Web Store on purpose. Install from this repo:
+
+1. Download the repo as a zip (or `git clone`) and unzip it.
+2. `chrome://extensions` → turn on **Developer mode**.
+3. **Load unpacked** → pick the `extension/` folder.
+4. Sign in once on [shit.so](https://shit.so). Open X.
+
+It only talks to shit.so. See [shit.so/extension](https://shit.so/extension).
 
 ## API
 
