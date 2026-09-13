@@ -14,7 +14,15 @@ import { EMOJI_KEYS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
 import { eligibility } from '$lib/eligibility';
 import { t } from '$lib/i18n';
+import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad } from './$types';
+
+// ELIGIBILITY_EXEMPT: comma-separated X handles that skip the follower/age rule.
+const exempt = () =>
+	(env.ELIGIBILITY_EXEMPT ?? '')
+		.split(',')
+		.map((h) => h.trim().replace(/^@/, '').toLowerCase())
+		.filter(Boolean);
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const handle = normalizeHandle(params.handle);
@@ -48,7 +56,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		virality,
 		gif,
 		isSelf: session?.user?.handle === handle,
-		eligible: session?.user ? eligibility(session.user) : null
+		eligible: session?.user ? eligibility(session.user, exempt()) : null
 	};
 };
 
@@ -60,7 +68,7 @@ export const actions: Actions = {
 		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/@${handle}`);
 		const L = locals.locale;
 		if (session.user.handle === handle) return fail(400, { error: t(L, 'vote.self') });
-		const elig = eligibility(session.user);
+		const elig = eligibility(session.user, exempt());
 		if (!elig.ok) return fail(403, { error: t(L, elig.key, elig.vars) });
 		if (await onCooldown(session.user.id, handle))
 			return fail(429, { error: t(L, 'vote.cooldown', { s: VOTE_COOLDOWN_SECONDS }) });
