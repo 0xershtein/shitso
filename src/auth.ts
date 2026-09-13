@@ -21,6 +21,9 @@ if (env.AUTH_TWITTER_ID && env.AUTH_TWITTER_SECRET) {
 		Twitter({
 			clientId: env.AUTH_TWITTER_ID,
 			clientSecret: env.AUTH_TWITTER_SECRET,
+			// Read-only. No tweet.write, no offline.access: we only need one users/me call at login,
+			// so the consent screen should not say "stay connected until you revoke access".
+			authorization: 'https://x.com/i/oauth2/authorize?scope=users.read tweet.read',
 			// Pull follower count + account age in the same call Auth.js already makes.
 			userinfo: {
 				url: 'https://api.x.com/2/users/me?user.fields=profile_image_url,public_metrics,created_at'

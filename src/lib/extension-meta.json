@@ -1,0 +1,27 @@
+{
+	"version": "0.2.5",
+	"bytes": 16177,
+	"sha256": "d5acde775ffe4ef2b5d20ccec869fe565f7bcf70143f77a67dfc1fcf63d62302",
+	"files": [
+		"background.js",
+		"content.css",
+		"content.js",
+		"icons/128.png",
+		"icons/16.png",
+		"icons/48.png",
+		"manifest.json",
+		"popup.html",
+		"popup.js"
+	],
+	"permissions": [
+		"storage"
+	],
+	"hosts": [
+		"https://shit.so/*",
+		"https://shitso.vercel.app/*"
+	],
+	"matches": [
+		"https://x.com/*",
+		"https://twitter.com/*"
+	]
+}
