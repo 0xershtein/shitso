@@ -86,7 +86,8 @@ interface Mention {
 	author_id: string;
 	created_at?: string;
 	lang?: string;
-	entities?: { mentions?: { username: string; id: string }[] };
+	in_reply_to_user_id?: string;
+	entities?: { mentions?: { username: string; id: string; start: number; end: number }[] };
 }
 interface XUser {
 	id: string;
@@ -100,10 +101,14 @@ const EMOJI_BY_CHAR = new Map(EMOJIS.map((e) => [e.char, e.key]));
 // 🫡 and ☣️ carry variation selectors in some clients; normalize by stripping FE0F.
 const strip = (s: string) => s.replace(/️/g, '');
 
-function parse(m: Mention, botId: string): { target: string | null; emoji: string | null } {
-	// exclude the bot by id, so a renamed bot account never becomes its own target
-	const others = (m.entities?.mentions ?? []).filter((x) => x.id !== botId).map((x) => x.username.toLowerCase());
-	const target = others.length ? normalizeHandle(others[0]) : null;
+function parse(m: Mention, botId: string): { target: string | null; targetId: string | null; emoji: string | null } {
+	const ms = [...(m.entities?.mentions ?? [])].sort((a, b) => a.start - b.start);
+	const botAt = ms.find((x) => x.id === botId)?.start ?? -1;
+	// X prepends the reply chain (@personYouReplyTo …) to the text; the intended target is
+	// the first handle the author typed after the bot's handle.
+	let pick = ms.find((x) => x.id !== botId && x.start > botAt);
+	if (!pick) pick = ms.find((x) => x.id !== botId && x.id !== m.in_reply_to_user_id);
+	const target = pick ? normalizeHandle(pick.username) : null;
 	let emoji: string | null = null;
 	const text = strip(m.text);
 	for (const [char, key] of EMOJI_BY_CHAR) {
@@ -112,7 +117,7 @@ function parse(m: Mention, botId: string): { target: string | null; emoji: strin
 			break;
 		}
 	}
-	return { target, emoji };
+	return { target, targetId: pick?.id ?? null, emoji };
 }
 
 function replyText(L: Locale, target: string, counts: Record<string, number>, total: number, shitScore: number): string {
@@ -132,43 +137,25 @@ export interface RunResult {
 	skipped: string[];
 }
 
-/** One polling pass: read new mentions, cast votes, reply. */
-export async function runOnce(): Promise<RunResult> {
+
+async function handle(list: Mention[], userList: XUser[], opts: { skipAge: boolean }): Promise<RunResult> {
 	const r = redis();
 	const me = await botId();
-	const since = r ? await r.get<string>('xbot:since') : null;
-	// First run ever: only remember the newest id, never replay the account's history.
-	if (!since) {
-		const boot = await xfetch(`/users/${me.id}/mentions?max_results=5`);
-		const bj = boot.ok ? ((await boot.json()) as { meta?: { newest_id?: string } }) : {};
-		await r?.set('xbot:since', bj.meta?.newest_id ?? '1');
-		return { seen: 0, voted: 0, replied: 0, skipped: ['bootstrap'] };
-	}
-	const q = new URLSearchParams({
-		max_results: '50',
-		'tweet.fields': 'author_id,entities,lang,created_at',
-		expansions: 'author_id',
-		'user.fields': 'username,public_metrics,created_at,profile_image_url'
-	});
-	if (since) q.set('since_id', since);
-	const res = await xfetch(`/users/${me.id}/mentions?${q}`);
-	if (!res.ok) throw new Error(`mentions ${res.status} ${await res.text().catch(() => '')}`);
-	const j = (await res.json()) as { data?: Mention[]; includes?: { users?: XUser[] }; meta?: { newest_id?: string } };
-	const out: RunResult = { seen: j.data?.length ?? 0, voted: 0, replied: 0, skipped: [] };
-	if (!j.data?.length) return out;
-	const users = new Map((j.includes?.users ?? []).map((u) => [u.id, u]));
+	const out: RunResult = { seen: list.length, voted: 0, replied: 0, skipped: [] };
+	if (!list.length) return out;
+	const users = new Map(userList.map((u) => [u.id, u]));
 	const exemptList = exempt();
 
 	// oldest first so replies land in order
 	const MAX_AGE_MS = 30 * 60_000; // never act on anything older than 30 minutes
-	for (const m of [...j.data].reverse()) {
+	for (const m of [...list].reverse()) {
 		if (r && (await r.get(`xbot:done:${m.id}`))) continue;
-		if (m.created_at && Date.now() - new Date(m.created_at).getTime() > MAX_AGE_MS) {
+		if (!opts.skipAge && m.created_at && Date.now() - new Date(m.created_at).getTime() > MAX_AGE_MS) {
 			out.skipped.push(`${m.id}:too-old`);
 			continue;
 		}
 		const author = users.get(m.author_id);
-		const { target, emoji } = parse(m, me.id);
+		const { target, targetId, emoji } = parse(m, me.id);
 		const L: Locale = m.lang === 'tr' ? 'tr' : 'en';
 		let reply: string | null = null;
 		if (!author || !target) {
@@ -197,16 +184,60 @@ export async function runOnce(): Promise<RunResult> {
 			reply = tally.total ? replyText(L, target, tally.counts, tally.total, tally.shitScore) : `@${target} ${t(L, 'profile.nobody')} https://shit.so/@${target}`;
 		}
 		if (reply) {
+			// keep the reply clean: only the author and the target get tagged
+			const exclude = (m.entities?.mentions ?? []).map((x) => x.id).filter((id) => id !== m.author_id && id !== targetId && id !== me.id);
 			const pr = await xfetch('/tweets', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ text: reply, reply: { in_reply_to_tweet_id: m.id } })
+				body: JSON.stringify({ text: reply, reply: { in_reply_to_tweet_id: m.id, ...(exclude.length ? { exclude_reply_user_ids: exclude } : {}) } })
 			});
 			if (pr.ok) out.replied++;
 			else out.skipped.push(`${m.id}:reply-${pr.status}`);
 		}
 		await r?.set(`xbot:done:${m.id}`, 1, { ex: 60 * 60 * 24 * 7 });
 	}
+	return out;
+}
+
+/** Re-process one tweet by id (ops): clears its done-marker and runs the normal handler. */
+export async function replay(tweetId: string): Promise<RunResult> {
+	const r = redis();
+	await r?.del(`xbot:done:${tweetId}`);
+	const q = new URLSearchParams({
+		ids: tweetId,
+		'tweet.fields': 'author_id,entities,lang,created_at,in_reply_to_user_id',
+		expansions: 'author_id',
+		'user.fields': 'username,public_metrics,created_at,profile_image_url'
+	});
+	const res = await xfetch(`/tweets?${q}`);
+	if (!res.ok) throw new Error(`tweets ${res.status}`);
+	const j = (await res.json()) as { data?: Mention[]; includes?: { users?: XUser[] } };
+	return handle(j.data ?? [], j.includes?.users ?? [], { skipAge: true });
+}
+
+/** One polling pass: read new mentions, cast votes, reply. */
+export async function runOnce(): Promise<RunResult> {
+	const r = redis();
+	const me = await botId();
+	const since = r ? await r.get<string>('xbot:since') : null;
+	// First run ever: only remember the newest id, never replay the account's history.
+	if (!since) {
+		const boot = await xfetch(`/users/${me.id}/mentions?max_results=5`);
+		const bj = boot.ok ? ((await boot.json()) as { meta?: { newest_id?: string } }) : {};
+		await r?.set('xbot:since', bj.meta?.newest_id ?? '1');
+		return { seen: 0, voted: 0, replied: 0, skipped: ['bootstrap'] };
+	}
+	const q = new URLSearchParams({
+		max_results: '50',
+		'tweet.fields': 'author_id,entities,lang,created_at,in_reply_to_user_id',
+		expansions: 'author_id',
+		'user.fields': 'username,public_metrics,created_at,profile_image_url'
+	});
+	if (since) q.set('since_id', since);
+	const res = await xfetch(`/users/${me.id}/mentions?${q}`);
+	if (!res.ok) throw new Error(`mentions ${res.status} ${await res.text().catch(() => '')}`);
+	const j = (await res.json()) as { data?: Mention[]; includes?: { users?: XUser[] }; meta?: { newest_id?: string } };
+	const out = await handle(j.data ?? [], j.includes?.users ?? [], { skipAge: false });
 	if (j.meta?.newest_id) await r?.set('xbot:since', j.meta.newest_id);
 	return out;
 }
