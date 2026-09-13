@@ -8,7 +8,7 @@ export interface ProfileFacts {
 	name: string | null;
 	followers: number | null;
 	following: number | null;
-	source: 'x' | 'extension';
+	source: 'x' | 'extension' | 'login' | 'owner';
 	fetchedAt: Date;
 	notFound: boolean;
 }
@@ -23,7 +23,7 @@ async function stored(handle: string): Promise<ProfileFacts | null> {
 
 function fresh(p: ProfileFacts | null): p is ProfileFacts {
 	if (!p) return false;
-	const ttl = p.source === 'extension' ? OBS_TTL_MS : X_TTL_MS;
+	const ttl = p.source === 'extension' ? OBS_TTL_MS : p.source === 'owner' ? 0 : X_TTL_MS;
 	return Date.now() - p.fetchedAt.getTime() < ttl;
 }
 
@@ -100,6 +100,20 @@ export async function observe(handle: string, facts: { name?: string | null; fol
 		followers: facts.followers,
 		following: facts.following,
 		source: 'extension',
+		fetchedAt: new Date(),
+		notFound: false
+	});
+}
+
+/** Called on every X login: the userinfo response already carries public metrics. */
+export async function rememberFromLogin(f: { handle: string; name: string | null; followers: number | null; following: number | null }) {
+	if (f.followers === null) return;
+	await upsert({
+		handle: f.handle,
+		name: f.name,
+		followers: f.followers,
+		following: f.following,
+		source: 'login',
 		fetchedAt: new Date(),
 		notFound: false
 	});

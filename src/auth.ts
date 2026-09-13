@@ -1,13 +1,15 @@
 import { SvelteKitAuth, type Profile } from '@auth/sveltekit';
 import Twitter from '@auth/sveltekit/providers/twitter';
 import { env } from '$env/dynamic/private';
+import { rememberFromLogin } from '$lib/server/profiles';
 
 interface XProfile extends Profile {
 	data?: {
 		id: string;
+		name?: string;
 		username?: string;
 		created_at?: string;
-		public_metrics?: { followers_count?: number };
+		public_metrics?: { followers_count?: number; following_count?: number };
 	};
 }
 
@@ -34,9 +36,18 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/signin', error: '/auth/error' },
 	callbacks: {
-		jwt({ token, account, profile }) {
+		async jwt({ token, account, profile }) {
 			if (account) {
 				const p = profile as XProfile | undefined;
+				// Free profile facts: X already returns them with the login. Persist for everyone.
+				if (account.provider === 'twitter' && p?.data?.username) {
+					await rememberFromLogin({
+						handle: p.data.username.toLowerCase(),
+						name: p.data.name ?? null,
+						followers: p.data.public_metrics?.followers_count ?? null,
+						following: p.data.public_metrics?.following_count ?? null
+					}).catch((e) => console.error('[auth] profile upsert failed', e));
+				}
 				token.uid = `${account.provider}:${account.providerAccountId}`;
 				token.provider = account.provider;
 				token.handle = p?.data?.username?.toLowerCase() ?? null;
