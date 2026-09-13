@@ -1,28 +1,12 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import {
-	VOTE_COOLDOWN_SECONDS,
-	castVote,
-	myVote,
-	onCooldown,
-	removeVote,
-	rhythmFor,
-	statsFor,
-	tallyFor
-} from '$lib/server/db/queries';
+import { myVote, rhythmFor, statsFor, tallyFor } from '$lib/server/db/queries';
 import { gifFor } from '$lib/server/giphy';
-import { EMOJI_KEYS, normalizeHandle } from '$lib/emojis';
+import { normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
 import { eligibility } from '$lib/eligibility';
 import { t } from '$lib/i18n';
-import { env } from '$env/dynamic/private';
+import { exempt, submitVote } from '$lib/server/vote';
 import type { Actions, PageServerLoad } from './$types';
-
-// ELIGIBILITY_EXEMPT: comma-separated X handles that skip the follower/age rule.
-const exempt = () =>
-	(env.ELIGIBILITY_EXEMPT ?? '')
-		.split(',')
-		.map((h) => h.trim().replace(/^@/, '').toLowerCase())
-		.filter(Boolean);
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const handle = normalizeHandle(params.handle);
@@ -66,21 +50,9 @@ export const actions: Actions = {
 		if (!handle) error(404);
 		const session = await locals.auth();
 		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/@${handle}`);
-		const L = locals.locale;
-		if (session.user.handle === handle) return fail(400, { error: t(L, 'vote.self') });
-		const elig = eligibility(session.user, exempt());
-		if (!elig.ok) return fail(403, { error: t(L, elig.key, elig.vars) });
-		if (await onCooldown(session.user.id, handle))
-			return fail(429, { error: t(L, 'vote.cooldown', { s: VOTE_COOLDOWN_SECONDS }) });
-
 		const form = await request.formData();
-		const emoji = String(form.get('emoji') ?? '');
-		if (emoji === 'none') {
-			await removeVote(session.user.id, session.user.handle, handle);
-			return { ok: true };
-		}
-		if (!EMOJI_KEYS.includes(emoji)) return fail(400, { error: t(L, 'vote.unknown') });
-		await castVote(session.user.id, session.user.handle, handle, emoji);
+		const r = await submitVote(session, handle, String(form.get('emoji') ?? ''));
+		if (!r.ok) return fail(r.status, { error: t(locals.locale, r.key, r.vars ?? {}) });
 		return { ok: true };
 	}
 };
