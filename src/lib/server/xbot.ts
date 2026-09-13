@@ -109,12 +109,26 @@ function parse(m: Mention, botId: string): { target: string | null; targetId: st
 	let pick = ms.find((x) => x.id !== botId && x.start > botAt);
 	if (!pick) pick = ms.find((x) => x.id !== botId && x.id !== m.in_reply_to_user_id);
 	const target = pick ? normalizeHandle(pick.username) : null;
-	let emoji: string | null = null;
+	// The vote is the FIRST emoji written after the target's handle (text order, not list order),
+	// so a tweet that also lists all ten emojis later still votes what the author meant.
 	const text = strip(m.text);
+	const from = pick ? Math.min(text.length, strip(m.text.slice(0, pick.end)).length) : 0;
+	let emoji: string | null = null;
+	let best = Infinity;
 	for (const [char, key] of EMOJI_BY_CHAR) {
-		if (text.includes(strip(char))) {
+		const i = text.indexOf(strip(char), from);
+		if (i !== -1 && i < best) {
+			best = i;
 			emoji = key;
-			break;
+		}
+	}
+	if (!emoji) {
+		for (const [char, key] of EMOJI_BY_CHAR) {
+			const i = text.indexOf(strip(char));
+			if (i !== -1 && i < best) {
+				best = i;
+				emoji = key;
+			}
 		}
 	}
 	return { target, targetId: pick?.id ?? null, emoji };

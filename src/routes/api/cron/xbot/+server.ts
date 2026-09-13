@@ -1,14 +1,21 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { replay, runOnce } from '$lib/server/xbot';
+import { rateLimit, clientIp } from '$lib/server/ratelimit';
 import type { RequestHandler } from './$types';
 
 /** Poll @giveshit_bot mentions. `?replay=<tweetId>` re-processes one tweet. Called every minute by an external scheduler with `Authorization: Bearer $CRON_SECRET`. */
 export const GET: RequestHandler = async ({ request, url }) => {
 	const auth = request.headers.get('authorization') ?? `Bearer ${url.searchParams.get('key') ?? ''}`;
-	if (!env.CRON_SECRET || auth !== `Bearer ${env.CRON_SECRET}`) return json({ error: 'nope' }, { status: 401 });
+	const trusted = !!env.CRON_SECRET && auth === `Bearer ${env.CRON_SECRET}`;
+	// Unauthenticated polls are allowed (so a public scheduler needs no secret) but globally
+	// throttled to one run per 45s and per-IP limited; replay stays secret-only.
+	if (!trusted) {
+		if (!(await rateLimit(`xbot:ip:${clientIp(request)}`, 4, 60_000)).ok) return json({ error: 'slow down' }, { status: 429 });
+		if (!(await rateLimit('xbot:global', 1, 45_000)).ok) return json({ ok: true, throttled: true }, { headers: { 'cache-control': 'no-store' } });
+	}
 	try {
-		const id = url.searchParams.get('replay');
+		const id = trusted ? url.searchParams.get('replay') : null;
 		const r = id && /^\d+$/.test(id) ? await replay(id) : await runOnce();
 		return json({ ok: true, ...r }, { headers: { 'cache-control': 'no-store' } });
 	} catch (e) {
