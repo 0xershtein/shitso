@@ -9,7 +9,7 @@
 </script>
 
 <section class="py-10 text-center">
-	<h1 class="text-4xl font-black tracking-tight sm:text-5xl">{t(L, 'home.title')}</h1>
+	<h1 class="text-4xl font-black tracking-tight sm:text-5xl" lang="en">{t(L, 'home.title')}</h1>
 	<p class="mx-auto mt-3 max-w-md text-neutral-400">{t(L, 'home.sub')}</p>
 
 	<form method="POST" action="?/search" use:enhance class="mx-auto mt-8 flex max-w-md gap-2">

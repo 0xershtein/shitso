@@ -35,7 +35,34 @@
 			: t(L, 'profile.shareUnrated', { h: data.handle, url: `https://shit.so/@${data.handle}` })
 	);
 	const votesWord = (n: number) => t(L, n === 1 ? 'profile.vote' : 'profile.votes');
+
+	// Emoji burst: particles fly out from behind the clicked button.
+	let burstLayer: HTMLDivElement | undefined = $state();
+	function burst(btn: HTMLElement, char: string) {
+		if (!burstLayer || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		const r = btn.getBoundingClientRect();
+		const cx = r.left + r.width / 2;
+		const cy = r.top + r.height / 2;
+		for (let i = 0; i < 14; i++) {
+			const p = document.createElement('span');
+			p.className = 'burst';
+			p.textContent = char;
+			const angle = (Math.PI * 2 * i) / 14 + (Math.random() - 0.5) * 0.6;
+			const dist = 70 + Math.random() * 90;
+			p.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+			p.style.setProperty('--dy', `${Math.sin(angle) * dist - 40}px`);
+			p.style.setProperty('--rot', `${(Math.random() - 0.5) * 240}deg`);
+			p.style.setProperty('--dur', `${650 + Math.random() * 350}ms`);
+			p.style.fontSize = `${16 + Math.random() * 16}px`;
+			p.style.left = `${cx}px`;
+			p.style.top = `${cy}px`;
+			burstLayer.appendChild(p);
+			p.addEventListener('animationend', () => p.remove(), { once: true });
+		}
+	}
 </script>
+
+<div bind:this={burstLayer} class="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true"></div>
 
 <svelte:head>
 	<title>@{data.handle} · {rated ? tierLabel : t(L, 'profile.tierPending')} · shit.so</title>
@@ -101,7 +128,7 @@
 {/if}
 
 <section class="mt-2">
-	<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">
+	<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500" lang={data.mine ? L : 'en'}>
 		{data.mine ? t(L, 'profile.yours') : t(L, 'profile.give')}
 	</h2>
 
@@ -111,14 +138,17 @@
 		<form
 			method="POST"
 			action="?/vote"
-			use:enhance={({ formData }) => {
-				pending = String(formData.get('emoji'));
+			use:enhance={({ formData, submitter }) => {
+				const key = String(formData.get('emoji'));
+				pending = key;
+				const char = emojiByKey(key)?.char;
+				if (submitter && char) burst(submitter as HTMLElement, char);
 				return async ({ update }) => {
 					await update();
 					pending = null;
 				};
 			}}
-			class="grid grid-cols-5 gap-2"
+			class="grid grid-cols-5 gap-2 sm:gap-3"
 		>
 			{#each EMOJIS as e (e.key)}
 				{@const active = data.mine === e.key}
@@ -127,13 +157,13 @@
 					name="emoji"
 					value={e.key}
 					disabled={pending !== null}
-					class="flex flex-col items-center gap-1 rounded-lg border p-3 transition
-						{active ? 'border-white bg-neutral-100 text-black' : 'border-neutral-800 bg-neutral-900/80 hover:border-neutral-600'}
-						{pending === e.key ? 'opacity-50' : ''}"
+					class="emoji-btn relative flex flex-col items-center gap-1.5 rounded-xl border py-4 transition sm:py-5
+						{active ? 'border-white bg-neutral-100 text-black' : 'border-neutral-800 bg-neutral-900/80 hover:border-neutral-500 hover:bg-neutral-800/80'}
+						{pending === e.key ? 'is-pending' : ''}"
 					title={label}
 				>
-					<span class="text-2xl">{e.char}</span>
-					<span class="text-[11px] {active ? 'text-neutral-700' : 'text-neutral-500'}">{label}</span>
+					<span class="emoji-glyph text-3xl sm:text-4xl">{e.char}</span>
+					<span class="text-[11px] sm:text-xs {active ? 'text-neutral-700' : 'text-neutral-500'}">{label}</span>
 				</button>
 			{/each}
 			{#if data.mine}
@@ -233,3 +263,50 @@
 		class="inline-block rounded-md border border-neutral-800 px-3 py-1.5 hover:bg-neutral-900 hover:text-neutral-200">{t(L, 'profile.share')}</a
 	>
 </section>
+
+<style>
+	:global(.burst) {
+		position: absolute;
+		transform: translate(-50%, -50%);
+		animation: burst var(--dur) cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+		will-change: transform, opacity;
+	}
+	@keyframes burst {
+		0% {
+			transform: translate(-50%, -50%) scale(0.4) rotate(0);
+			opacity: 0;
+		}
+		15% {
+			opacity: 1;
+		}
+		100% {
+			transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.1) rotate(var(--rot));
+			opacity: 0;
+		}
+	}
+	.emoji-btn:active .emoji-glyph,
+	.emoji-btn.is-pending .emoji-glyph {
+		animation: pop 320ms ease-out;
+	}
+	.emoji-btn:hover .emoji-glyph {
+		transform: scale(1.15);
+		transition: transform 120ms ease-out;
+	}
+	@keyframes pop {
+		0% {
+			transform: scale(1);
+		}
+		40% {
+			transform: scale(1.45);
+		}
+		100% {
+			transform: scale(1.15);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.emoji-btn .emoji-glyph {
+			animation: none;
+			transform: none;
+		}
+	}
+</style>
