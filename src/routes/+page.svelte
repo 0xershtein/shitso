@@ -41,8 +41,8 @@
 	</div>
 	<div class="rounded-lg border border-neutral-900 bg-neutral-950/60 px-4 py-3 text-sm">
 		<div class="mb-1.5 font-semibold text-neutral-200">🐦 {t(L, 'home.byTweet')}</div>
-		<code class="block rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs text-neutral-100">@giveshit_bot @elonmusk 💩</code>
-		<div class="mt-1.5 text-[11px] text-neutral-500">{t(L, 'home.byTweetReply')} <code class="rounded bg-neutral-900 px-1.5 py-0.5 font-mono text-neutral-200">@giveshit_bot 💩</code></div>
+		<code class="block rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs text-neutral-100">@giveashit_bot @elonmusk 💩</code>
+		<div class="mt-1.5 text-[11px] text-neutral-500">{t(L, 'home.byTweetReply')} <code class="rounded bg-neutral-900 px-1.5 py-0.5 font-mono text-neutral-200">@giveashit_bot 💩</code></div>
 	</div>
 </section>
 

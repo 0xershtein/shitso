@@ -1,4 +1,4 @@
-// @giveshit_bot — vote by tweet. "@giveshit_bot @target 💩" casts a vote from the tweet's author.
+// @giveashit_bot — vote by tweet. "@giveashit_bot @target 💩" casts a vote from the tweet's author.
 import { Redis } from '@upstash/redis';
 import { env } from '$env/dynamic/private';
 import { EMOJIS, normalizeHandle } from '$lib/emojis';
@@ -107,7 +107,7 @@ function parse(m: Mention, botId: string, users?: Map<string, XUser>): { target:
 	// X prepends the reply chain (@personYouReplyTo …) to the text; the intended target is
 	// the first handle the author typed after the bot's handle.
 	// Explicit target: the first handle typed after the bot. Otherwise, when the tweet is a
-	// reply, the person being replied to is the target ("@giveshit_bot 💩" under their tweet).
+	// reply, the person being replied to is the target ("@giveashit_bot 💩" under their tweet).
 	let pick = ms.find((x) => x.id !== botId && x.start > botAt);
 	if (!pick && m.in_reply_to_user_id && m.in_reply_to_user_id !== botId) {
 		const replied = ms.find((x) => x.id === m.in_reply_to_user_id);

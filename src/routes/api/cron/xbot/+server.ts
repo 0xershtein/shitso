@@ -4,7 +4,7 @@ import { forceRefresh, postTweet, replay, runOnce } from '$lib/server/xbot';
 import { rateLimit, clientIp } from '$lib/server/ratelimit';
 import type { RequestHandler } from './$types';
 
-/** Poll @giveshit_bot mentions. `?replay=<tweetId>` re-processes one tweet. Called every minute by an external scheduler with `Authorization: Bearer $CRON_SECRET`. */
+/** Poll @giveashit_bot mentions. `?replay=<tweetId>` re-processes one tweet. Called every minute by an external scheduler with `Authorization: Bearer $CRON_SECRET`. */
 export const GET: RequestHandler = async ({ request, url }) => {
 	const auth = request.headers.get('authorization') ?? `Bearer ${url.searchParams.get('key') ?? ''}`;
 	const trusted = !!env.CRON_SECRET && auth === `Bearer ${env.CRON_SECRET}`;
