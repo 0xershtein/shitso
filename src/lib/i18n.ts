@@ -6,7 +6,7 @@ type Dict = Record<string, string>;
 const en: Dict = {
 	'nav.signin': 'sign in',
 	'nav.signout': 'sign out',
-	'footer.rule': 'one X account, one vote per person. {f}+ followers, {d}+ day old account. change your mind anytime.',
+	'footer.rule': 'one X account, one vote per person. {f}+ followers. change your mind anytime.',
 
 	'home.title': 'give a shit.',
 	'home.sub': 'rate anyone on X with one of ten emojis. one vote per person, and you can change it whenever they change.',
@@ -62,7 +62,7 @@ const en: Dict = {
 	'profile.yours': 'your shit',
 	'profile.self': 'this is you. you cannot rate yourself, but you can share this page and find out.',
 	'profile.remove': "actually, i don't give a shit anymore",
-	'profile.signinHint': "you'll be asked to sign in with X first. {f}+ followers, {d}+ day old account.",
+	'profile.signinHint': "you'll be asked to sign in with X first. {f}+ followers.",
 	'profile.peopleWhoCare': 'people who care',
 	'profile.last24h': 'last 24h',
 	'profile.dayBefore': '{n} the day before',
@@ -232,7 +232,7 @@ const en: Dict = {
 const tr: Dict = {
 	'nav.signin': 'giriş yap',
 	'nav.signout': 'çıkış',
-	'footer.rule': 'bir X hesabı, kişi başı bir oy. {f}+ takipçi, {d}+ günlük hesap. fikrin değişince oyun da değişir.',
+	'footer.rule': 'bir X hesabı, kişi başı bir oy. {f}+ takipçi. fikrin değişince oyun da değişir.',
 
 	'home.title': 'give a shit.',
 	'home.sub': "X'teki herhangi birine on emojiden birini bırak. kişi başı bir oy, o değişince sen de değiştirirsin.",
@@ -288,7 +288,7 @@ const tr: Dict = {
 	'profile.yours': 'senin shitin',
 	'profile.self': 'bu sensin. kendine oy veremezsin ama sayfayı paylaşıp öğrenebilirsin.',
 	'profile.remove': 'aslında artık umrumda değil',
-	'profile.signinHint': "önce X ile giriş istenecek. {f}+ takipçi, {d}+ günlük hesap.",
+	'profile.signinHint': "önce X ile giriş istenecek. {f}+ takipçi.",
 	'profile.peopleWhoCare': 'umursayanlar',
 	'profile.last24h': 'son 24 saat',
 	'profile.dayBefore': 'önceki gün {n}',

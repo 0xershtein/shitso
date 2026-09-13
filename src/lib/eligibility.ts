@@ -1,5 +1,5 @@
 export const MIN_FOLLOWERS = 10;
-export const MIN_ACCOUNT_AGE_DAYS = 7;
+export const MIN_ACCOUNT_AGE_DAYS = 0; // age check off for launch; raise if bots show up
 
 export interface VoterFacts {
 	provider: string;
@@ -22,6 +22,6 @@ export function eligibility(u: VoterFacts | null | undefined, exempt: string[] =
 	if (u.followers === null || u.accountCreatedAt === null) return { ok: false, key: 'elig.noProfile', vars: {} };
 	const ageDays = (Date.now() - new Date(u.accountCreatedAt).getTime()) / 86400000;
 	if (u.followers < MIN_FOLLOWERS) return { ok: false, key: 'elig.followers', vars: { f: MIN_FOLLOWERS } };
-	if (ageDays < MIN_ACCOUNT_AGE_DAYS) return { ok: false, key: 'elig.age', vars: { d: MIN_ACCOUNT_AGE_DAYS } };
+	if (MIN_ACCOUNT_AGE_DAYS > 0 && ageDays < MIN_ACCOUNT_AGE_DAYS) return { ok: false, key: 'elig.age', vars: { d: MIN_ACCOUNT_AGE_DAYS } };
 	return { ok: true };
 }
