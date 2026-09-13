@@ -11,6 +11,9 @@
 <section class="py-10 text-center">
 	<h1 class="text-4xl font-black tracking-tight sm:text-5xl" lang="en">{t(L, 'home.title')}</h1>
 	<p class="mx-auto mt-3 max-w-md text-neutral-400">{t(L, 'home.sub')}</p>
+	<p class="mx-auto mt-4 inline-flex max-w-md items-center gap-2 rounded-lg border border-emerald-900/60 bg-emerald-950/40 px-4 py-2 text-sm font-semibold text-emerald-300">
+		<span class="text-lg">🎁</span>{t(L, 'home.gift')}
+	</p>
 
 	<form method="POST" action="?/search" use:enhance class="mx-auto mt-8 flex max-w-md gap-2">
 		<div class="flex flex-1 items-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 focus-within:border-neutral-600">
@@ -25,7 +28,6 @@
 		{#each EMOJIS as e (e.key)}<span title={t(L, `emoji.${e.key}`)}>{e.char}</span>{/each}
 	</div>
 	<p class="mt-2 text-xs text-neutral-600">{t(L, 'home.stats', { votes: data.stats.votes, targets: data.stats.targets })}</p>
-	<p class="mt-6 inline-block rounded-full border border-neutral-800 px-3 py-1 text-xs text-neutral-400">🎁 {t(L, 'home.gift')}</p>
 </section>
 
 {#snippet row(target: string, total: number, shitScore: number, i: number, right: string | undefined = undefined)}
