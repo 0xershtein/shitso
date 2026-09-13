@@ -1,6 +1,8 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { castVote, myVote, removeVote, tallyFor } from '$lib/server/db/queries';
+import { castVote, myVote, removeVote, rhythmFor, statsFor, tallyFor } from '$lib/server/db/queries';
+import { gifFor } from '$lib/server/giphy';
 import { EMOJI_KEYS, normalizeHandle } from '$lib/emojis';
+import { tierFor, viralityFor } from '$lib/tiers';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -9,11 +11,32 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (handle !== params.handle) redirect(301, `/${handle}`);
 
 	const session = await locals.auth();
-	const [tally, mine] = await Promise.all([
+	const [tally, mine, stats, rhythm] = await Promise.all([
 		tallyFor(handle),
-		session?.user?.id ? myVote(session.user.id, handle) : null
+		session?.user?.id ? myVote(session.user.id, handle) : null,
+		statsFor(handle),
+		rhythmFor(handle)
 	]);
-	return { handle, tally, mine, isSelf: session?.user?.handle === handle };
+	const tier = tierFor(tally.shitScore, tally.total);
+	const virality = viralityFor({
+		total: tally.total,
+		bad: tally.bad,
+		last24h: stats.last24h,
+		distinctEmojis: tally.distinctEmojis
+	});
+	const gif = await gifFor(handle, tier.gifQuery);
+
+	return {
+		handle,
+		tally,
+		mine,
+		stats,
+		rhythm,
+		tier,
+		virality,
+		gif,
+		isSelf: session?.user?.handle === handle
+	};
 };
 
 export const actions: Actions = {
@@ -27,7 +50,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const emoji = String(form.get('emoji') ?? '');
 		if (emoji === 'none') {
-			await removeVote(session.user.id, handle);
+			await removeVote(session.user.id, session.user.handle, handle);
 			return { ok: true };
 		}
 		if (!EMOJI_KEYS.includes(emoji)) return fail(400, { error: 'unknown emoji' });
