@@ -9,6 +9,8 @@
 	const L = $derived(data.locale);
 
 	let pending = $state<string | null>(null);
+	let optimistic = $state<string | null>(null); // selected emoji shown before the server confirms
+	const mine = $derived(optimistic ?? data.mine);
 	const top = $derived(data.tally.top ? emojiByKey(data.tally.top) : null);
 	const max = $derived(Math.max(1, ...Object.values(data.tally.counts)));
 	const rhythmMax = $derived(Math.max(1, ...data.rhythm.map((d) => d.bad + d.good)));
@@ -129,7 +131,7 @@
 
 <section class="mt-2">
 	<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500" lang={data.mine ? L : 'en'}>
-		{data.mine ? t(L, 'profile.yours') : t(L, 'profile.give')}
+		{mine ? t(L, 'profile.yours') : t(L, 'profile.give')}
 	</h2>
 
 	{#if data.isSelf}
@@ -141,17 +143,19 @@
 			use:enhance={({ formData, submitter }) => {
 				const key = String(formData.get('emoji'));
 				pending = key;
+				optimistic = key === 'none' ? null : key;
 				const char = emojiByKey(key)?.char;
 				if (submitter && char) burst(submitter as HTMLElement, char);
 				return async ({ update }) => {
 					await update();
 					pending = null;
+					optimistic = null;
 				};
 			}}
 			class="grid grid-cols-5 gap-2 sm:gap-3"
 		>
 			{#each EMOJIS as e (e.key)}
-				{@const active = data.mine === e.key}
+				{@const active = mine === e.key}
 				{@const label = t(L, `emoji.${e.key}`)}
 				<button
 					name="emoji"
@@ -166,7 +170,7 @@
 					<span class="text-[11px] sm:text-xs {active ? 'text-neutral-700' : 'text-neutral-500'}">{label}</span>
 				</button>
 			{/each}
-			{#if data.mine}
+			{#if mine}
 				<button name="emoji" value="none" class="col-span-5 mt-1 text-xs text-neutral-500 underline hover:text-neutral-300">{t(L, 'profile.remove')}</button>
 			{/if}
 		</form>

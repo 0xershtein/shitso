@@ -62,10 +62,14 @@ export async function myVote(voterId: string, target: string): Promise<string | 
 
 export const VOTE_COOLDOWN_SECONDS = 10;
 
-/** True when the voter touched this target within the cooldown window. */
-export async function onCooldown(voterId: string, target: string): Promise<boolean> {
-	const [row] = await db
-		.select({ n: sql<number>`count(*)::int` })
+/**
+ * Append an event, unless the same voter touched the same target within the cooldown
+ * window: then the latest event is rewritten in place. Votes always apply instantly;
+ * this only keeps rapid re-clicks from spamming the rhythm/trending data.
+ */
+async function logEvent(voterId: string, voterHandle: string | null, target: string, emoji: string) {
+	const [last] = await db
+		.select({ id: voteEvents.id })
 		.from(voteEvents)
 		.where(
 			and(
@@ -73,8 +77,14 @@ export async function onCooldown(voterId: string, target: string): Promise<boole
 				eq(voteEvents.target, target),
 				gte(voteEvents.createdAt, sql`now() - ${sql.raw(`interval '${VOTE_COOLDOWN_SECONDS} seconds'`)}`)
 			)
-		);
-	return (row?.n ?? 0) > 0;
+		)
+		.orderBy(desc(voteEvents.createdAt))
+		.limit(1);
+	if (last) {
+		await db.update(voteEvents).set({ emoji, voterHandle, createdAt: sql`now()` }).where(eq(voteEvents.id, last.id));
+	} else {
+		await db.insert(voteEvents).values({ voterId, voterHandle, target, emoji });
+	}
 }
 
 export async function castVote(
@@ -90,12 +100,12 @@ export async function castVote(
 			target: [votes.voterId, votes.target],
 			set: { emoji, voterHandle, updatedAt: sql`now()` }
 		});
-	await db.insert(voteEvents).values({ voterId, voterHandle, target, emoji });
+	await logEvent(voterId, voterHandle, target, emoji);
 }
 
 export async function removeVote(voterId: string, voterHandle: string | null, target: string) {
 	await db.delete(votes).where(and(eq(votes.voterId, voterId), eq(votes.target, target)));
-	await db.insert(voteEvents).values({ voterId, voterHandle, target, emoji: 'none' });
+	await logEvent(voterId, voterHandle, target, 'none');
 }
 
 export interface BoardRow {

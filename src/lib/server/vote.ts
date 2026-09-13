@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/private';
 import type { Session } from '@auth/sveltekit';
 import { EMOJI_KEYS } from '$lib/emojis';
 import { eligibility } from '$lib/eligibility';
-import { castVote, onCooldown, removeVote, VOTE_COOLDOWN_SECONDS } from './db/queries';
+import { castVote, removeVote } from './db/queries';
 
 // ELIGIBILITY_EXEMPT: comma-separated X handles that skip the follower/age rule.
 export const exempt = () =>
@@ -22,8 +22,6 @@ export async function submitVote(session: Session | null, target: string, emoji:
 	if (user.handle === target) return { ok: false, status: 400, key: 'vote.self' };
 	const elig = eligibility(user, exempt());
 	if (!elig.ok) return { ok: false, status: 403, key: elig.key, vars: elig.vars };
-	if (await onCooldown(user.id, target))
-		return { ok: false, status: 429, key: 'vote.cooldown', vars: { s: VOTE_COOLDOWN_SECONDS } };
 	if (emoji === 'none') {
 		await removeVote(user.id, user.handle, target);
 		return { ok: true };
