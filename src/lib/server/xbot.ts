@@ -84,6 +84,7 @@ interface Mention {
 	id: string;
 	text: string;
 	author_id: string;
+	created_at?: string;
 	lang?: string;
 	entities?: { mentions?: { username: string; id: string }[] };
 }
@@ -135,6 +136,13 @@ export async function runOnce(): Promise<RunResult> {
 	const r = redis();
 	const me = await botId();
 	const since = r ? await r.get<string>('xbot:since') : null;
+	// First run ever: only remember the newest id, never replay the account's history.
+	if (!since) {
+		const boot = await xfetch(`/users/${me.id}/mentions?max_results=5`);
+		const bj = boot.ok ? ((await boot.json()) as { meta?: { newest_id?: string } }) : {};
+		await r?.set('xbot:since', bj.meta?.newest_id ?? '1');
+		return { seen: 0, voted: 0, replied: 0, skipped: ['bootstrap'] };
+	}
 	const q = new URLSearchParams({
 		max_results: '50',
 		'tweet.fields': 'author_id,entities,lang,created_at',
@@ -151,8 +159,13 @@ export async function runOnce(): Promise<RunResult> {
 	const exemptList = exempt();
 
 	// oldest first so replies land in order
+	const MAX_AGE_MS = 30 * 60_000; // never act on anything older than 30 minutes
 	for (const m of [...j.data].reverse()) {
 		if (r && (await r.get(`xbot:done:${m.id}`))) continue;
+		if (m.created_at && Date.now() - new Date(m.created_at).getTime() > MAX_AGE_MS) {
+			out.skipped.push(`${m.id}:too-old`);
+			continue;
+		}
 		const author = users.get(m.author_id);
 		const { target, emoji } = parse(m, me.username);
 		const L: Locale = m.lang === 'tr' ? 'tr' : 'en';
