@@ -13,6 +13,8 @@ declare module '@auth/sveltekit' {
 }
 
 declare global {
+	// Google Analytics (gtag.js), injected in +layout.svelte when PUBLIC_GA_ID is set.
+	function gtag(...args: unknown[]): void;
 	namespace App {
 		interface Locals {
 			locale: import('$lib/i18n').Locale;

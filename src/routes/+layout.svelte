@@ -2,10 +2,14 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
-	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import { env } from '$env/dynamic/public';
 	import { dev } from '$app/environment';
+	import { afterNavigate } from '$app/navigation';
 
-	injectAnalytics({ mode: dev ? 'development' : 'production' });
+	const GA = !dev && env.PUBLIC_GA_ID ? env.PUBLIC_GA_ID : null;
+	afterNavigate(() => {
+		if (GA && typeof gtag === 'function') gtag('event', 'page_view', { page_path: location.pathname });
+	});
 	import { t, LOCALES } from '$lib/i18n';
 	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
 
@@ -22,6 +26,15 @@
 	<link rel="icon" href={favicon} />
 	<title>shit.so</title>
 	<meta name="description" content={t(L, 'home.sub')} />
+	{#if GA}
+		<script async src="https://www.googletagmanager.com/gtag/js?id={GA}"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() { dataLayer.push(arguments); }
+			gtag('js', new Date());
+			gtag('config', '{GA}', { send_page_view: false, anonymize_ip: true });
+		</script>
+	{/if}
 </svelte:head>
 
 <div class="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4">
