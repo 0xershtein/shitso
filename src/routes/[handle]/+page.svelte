@@ -232,7 +232,7 @@
 					title={label}
 				>
 					<span class="emoji-glyph text-3xl sm:text-4xl">{e.char}</span>
-					<span class="text-[11px] sm:text-xs {active ? 'text-neutral-700' : 'text-neutral-500'}">{label}</span>
+					<span class="max-w-full truncate px-1 text-[10px] sm:text-xs {active ? 'text-neutral-700' : 'text-neutral-500'}">{label}</span>
 				</button>
 			{/each}
 			{#if mine}

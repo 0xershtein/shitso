@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { EMOJIS, emojiByKey } from '$lib/emojis';
-	import { tierFor } from '$lib/tiers';
+	import { tierFor, MIN_VOTES_FOR_TIER } from '$lib/tiers';
 	import { ago, t } from '$lib/i18n';
 	import Search from '$lib/components/Search.svelte';
 
@@ -47,8 +47,12 @@
 			<img src="/avatar/{target}" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
 			<span class="min-w-0 flex-1 truncate">@{target}</span>
 			<span class="hidden shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:inline {tier.badge}">{tier.emoji} {t(L, `tier.${tier.key}.label`)}</span>
-			<span class="hidden shrink-0 text-xs text-neutral-500 lg:inline">{right ?? t(L, 'home.votes', { n: total })}</span>
-			<span class="w-11 shrink-0 text-right text-sm font-semibold {tier.accent}">{shitScore}%</span>
+			<span class="shrink-0 text-xs text-neutral-500">{right ?? t(L, 'home.votes', { n: total })}</span>
+			{#if total >= MIN_VOTES_FOR_TIER}
+				<span class="w-11 shrink-0 text-right text-sm font-semibold {tier.accent}">{shitScore}%</span>
+			{:else}
+				<span class="w-11 shrink-0 text-right text-xs text-neutral-600" title={t(L, 'profile.tierPending')}>—</span>
+			{/if}
 		</a>
 	</li>
 {/snippet}
