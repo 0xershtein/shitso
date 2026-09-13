@@ -1,7 +1,7 @@
 {
 	"version": "0.2.5",
 	"bytes": 16177,
-	"sha256": "d5acde775ffe4ef2b5d20ccec869fe565f7bcf70143f77a67dfc1fcf63d62302",
+	"sha256": "d4237d9e4cf0e383322fd25c183ff7b34cfd90df72eab2c0c04e1fb1b3fbca10",
 	"files": [
 		"background.js",
 		"content.css",

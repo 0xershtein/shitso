@@ -18,8 +18,11 @@ function walk(dir) {
 	}
 }
 walk(SRC);
-// Fixed mtime so the same source always yields the same bytes (and the same sha256).
-const zip = zipSync(files, { level: 9, mtime: '2026-01-01T00:00:00Z' });
+// Reproducible: sorted entry order (readdir order differs between macOS and Linux) and a fixed
+// mtime built from local date parts, because zip stores DOS time in local time and a UTC
+// instant would encode differently in Istanbul vs a UTC build machine.
+const sorted = Object.fromEntries(Object.keys(files).sort().map((k) => [k, files[k]]));
+const zip = zipSync(sorted, { level: 9, mtime: new Date(2026, 0, 1, 0, 0, 0) });
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(join(OUT_DIR, `shitso-extension-${manifest.version}.zip`), zip);
 writeFileSync(join(OUT_DIR, 'shitso-extension.zip'), zip);
