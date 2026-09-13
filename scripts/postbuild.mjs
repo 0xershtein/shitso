@@ -4,8 +4,9 @@ import { readdirSync, statSync, copyFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 
+// harfbuzzjs is satori's dependency, so resolve it from satori's own location (pnpm-safe).
 const require = createRequire(import.meta.url);
-const src = require.resolve('harfbuzzjs/hb.wasm');
+const src = createRequire(require.resolve('satori')).resolve('harfbuzzjs/hb.wasm');
 const root = '.vercel/output/functions';
 if (!existsSync(root)) process.exit(0);
 
