@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { EMOJIS, emojiByKey } from '$lib/emojis';
 	import { MIN_VOTES_FOR_TIER } from '$lib/tiers';
+	import Reaction from '$lib/components/Reaction.svelte';
 
 	let { data, form } = $props();
 
@@ -85,6 +86,10 @@
 		{/if}
 	</div>
 </section>
+
+{#if !data.gif && data.tally.total >= MIN_VOTES_FOR_TIER}
+	<Reaction tier={data.tier.key} seed={data.handle} />
+{/if}
 
 {#if data.gif}
 	<figure class="mb-6 overflow-hidden rounded-lg border border-neutral-900 bg-neutral-900">
