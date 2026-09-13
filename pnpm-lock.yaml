@@ -42,6 +42,9 @@ devDependencies:
   drizzle-orm:
     specifier: ^0.45.2
     version: 0.45.2(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.4)
+  fflate:
+    specifier: ^0.8.3
+    version: 0.8.3
   prettier:
     specifier: ^3.8.3
     version: 3.8.3
@@ -1914,6 +1917,10 @@ packages:
   /fflate@0.7.3:
     resolution: {integrity: sha512-0Zz1jOzJWERhyhsimS54VTqOteCNwRtIlh8isdL0AXLo0g7xNTfTL7oWrkmCnPhZGocKIkWHBistBrrpoNH3aw==}
     dev: false
+
+  /fflate@0.8.3:
+    resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
+    dev: true
 
   /file-uri-to-path@1.0.0:
     resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}

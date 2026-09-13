@@ -33,8 +33,8 @@
 				<span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-xs font-bold">{n}</span>
 				<div class="text-sm leading-7">
 					{#if n === 1}
-						<a href="{REPO}/archive/refs/heads/main.zip" class="font-semibold underline decoration-neutral-700 hover:decoration-white">{t(L, 'ext.s1')}</a>
-						<span class="text-neutral-500"> · <a href={REPO} target="_blank" rel="noopener" class="underline hover:text-neutral-300">github.com/0xershtein/shitso</a></span>
+						<a href="/downloads/shitso-extension.zip" class="font-semibold underline decoration-neutral-700 hover:decoration-white">{t(L, 'ext.s1')}</a>
+						<span class="text-neutral-500"> · {t(L, 'ext.source')}: <a href="{REPO}/tree/main/extension" target="_blank" rel="noopener" class="underline hover:text-neutral-300">github</a></span>
 					{:else}
 						{t(L, `ext.s${n}`)}
 					{/if}
@@ -42,8 +42,7 @@
 			</li>
 		{/each}
 	</ol>
-	<pre class="mt-4 overflow-x-auto rounded-lg border border-neutral-900 bg-neutral-950 p-3 text-xs text-neutral-400"><code>git clone {REPO}.git
-# chrome://extensions → Developer mode → Load unpacked → shitso/extension</code></pre>
+	<a href="/downloads/shitso-extension.zip" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-black hover:bg-neutral-200">⬇️ {t(L, 'ext.download')}</a>
 
 	<p class="mt-8 text-xs text-neutral-500">{t(L, 'ext.privacy')}</p>
 </section>

@@ -40,9 +40,9 @@ Optional: `GIPHY_API_KEY` or `TENOR_API_KEY` enables a reaction gif per tier.
 
 No Chrome Web Store on purpose. Install from this repo:
 
-1. Download the repo as a zip (or `git clone`) and unzip it.
+1. Download [shitso-extension.zip](https://shit.so/downloads/shitso-extension.zip) and unzip it (or use the `extension/` folder from this repo).
 2. `chrome://extensions` → turn on **Developer mode**.
-3. **Load unpacked** → pick the `extension/` folder.
+3. **Load unpacked** → pick the unzipped folder.
 4. Sign in once on [shit.so](https://shit.so). Open X.
 
 It only talks to shit.so. See [shit.so/extension](https://shit.so/extension).

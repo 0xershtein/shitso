@@ -1,15 +1,24 @@
-// Zips extension/ into dist/shitso-extension-<version>.zip (README excluded) for the Chrome Web Store.
-import { readFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { resolve } from 'node:path';
+// Zip extension/ into static/downloads/ (served by the site) using fflate (no zip CLI needed).
+import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { zipSync } from 'fflate';
 
-const root = resolve(import.meta.dirname, '..');
-const ext = resolve(root, 'extension');
-const { version } = JSON.parse(readFileSync(resolve(ext, 'manifest.json'), 'utf8'));
-const dist = resolve(root, 'dist');
-const out = resolve(dist, `shitso-extension-${version}.zip`);
+const SRC = 'extension';
+const OUT_DIR = 'static/downloads';
+const manifest = JSON.parse(readFileSync(join(SRC, 'manifest.json'), 'utf8'));
+const files = {};
 
-mkdirSync(dist, { recursive: true });
-if (existsSync(out)) rmSync(out);
-execFileSync('zip', ['-r', '-q', '-X', out, '.', '-x', 'README.md', '.DS_Store', '*/.DS_Store'], { cwd: ext, stdio: 'inherit' });
-console.log(`[pack] ${out}`);
+function walk(dir) {
+	for (const name of readdirSync(dir)) {
+		if (name === 'README.md' || name === '.DS_Store') continue;
+		const p = join(dir, name);
+		if (statSync(p).isDirectory()) walk(p);
+		else files[relative(SRC, p).split('\\').join('/')] = readFileSync(p);
+	}
+}
+walk(SRC);
+const zip = zipSync(files, { level: 9 });
+mkdirSync(OUT_DIR, { recursive: true });
+writeFileSync(join(OUT_DIR, `shitso-extension-${manifest.version}.zip`), zip);
+writeFileSync(join(OUT_DIR, 'shitso-extension.zip'), zip);
+console.log(`[pack] extension ${manifest.version} → ${OUT_DIR} (${zip.length} bytes, ${Object.keys(files).length} files)`);
