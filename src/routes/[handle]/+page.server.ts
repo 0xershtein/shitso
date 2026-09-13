@@ -18,7 +18,7 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const handle = normalizeHandle(params.handle);
 	if (!handle) error(404, 'not an X handle');
-	if (handle !== params.handle) redirect(301, `/${handle}`);
+	if (params.handle !== `@${handle}`) redirect(301, `/@${handle}`);
 
 	const session = await locals.auth();
 	const [tally, mine, stats, rhythm] = await Promise.all([
@@ -56,7 +56,7 @@ export const actions: Actions = {
 		const handle = normalizeHandle(params.handle);
 		if (!handle) error(404);
 		const session = await locals.auth();
-		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/${handle}`);
+		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/@${handle}`);
 		if (session.user.handle === handle) return fail(400, { error: 'you cannot rate yourself, nice try' });
 		const elig = eligibility(session.user);
 		if (!elig.ok) return fail(403, { error: elig.reason });

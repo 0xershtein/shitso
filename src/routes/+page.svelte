@@ -38,7 +38,7 @@
 {#snippet row(target: string, total: number, shitScore: number, i: number, right: string | undefined = undefined)}
 	{@const tier = tierFor(shitScore, total)}
 	<li>
-		<a href="/{target}" class="flex items-center gap-3 px-3 py-2 hover:bg-neutral-900">
+		<a href="/@{target}" class="flex items-center gap-3 px-3 py-2 hover:bg-neutral-900">
 			<span class="w-5 text-right text-xs text-neutral-600">{i + 1}</span>
 			<img src="https://unavatar.io/x/{target}?fallback=false" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
 			<span class="min-w-0 flex-1 truncate">@{target}</span>
@@ -88,7 +88,7 @@
 					<span>gave</span>
 					<span class="text-lg leading-none" title={e?.label}>{e?.char ?? '❓'}</span>
 					<span>to</span>
-					<a href="/{f.target}" class="font-semibold text-neutral-200 hover:underline">@{f.target}</a>
+					<a href="/@{f.target}" class="font-semibold text-neutral-200 hover:underline">@{f.target}</a>
 				</li>
 			{/each}
 		</ul>

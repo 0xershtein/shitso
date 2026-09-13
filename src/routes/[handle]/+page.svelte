@@ -21,8 +21,8 @@
 	);
 	const shareText = $derived(
 		data.tally.total >= MIN_VOTES_FOR_TIER
-			? `@${data.handle} is ${data.tier.emoji} ${data.tier.label} (${data.tally.shitScore}% shit, ${data.tally.total} votes). agree? https://shit.so/${data.handle}`
-			: `does @${data.handle} deserve a 💩 or a 🐐? give a shit: https://shit.so/${data.handle}`
+			? `@${data.handle} is ${data.tier.emoji} ${data.tier.label} (${data.tally.shitScore}% shit, ${data.tally.total} votes). agree? https://shit.so/@${data.handle}`
+			: `does @${data.handle} deserve a 💩 or a 🐐? give a shit: https://shit.so/@${data.handle}`
 	);
 
 	function ago(d: Date | null) {
@@ -39,11 +39,11 @@
 	<title>@{data.handle} is {data.tier.label} · shit.so</title>
 	<meta property="og:title" content="@{data.handle} is {data.tally.shitScore}% shit {data.tier.emoji}" />
 	<meta property="og:description" content="{data.tally.total} people gave a shit. tier: {data.tier.label}. give yours on shit.so" />
-	<meta property="og:image" content="{data.origin}/{data.handle}/og.png" />
+	<meta property="og:image" content="{data.origin}/@{data.handle}/og.png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:image" content="{data.origin}/{data.handle}/og.png" />
+	<meta name="twitter:image" content="{data.origin}/@{data.handle}/og.png" />
 </svelte:head>
 
 <div class="pointer-events-none fixed inset-0 -z-10 {data.tier.bg}"></div>

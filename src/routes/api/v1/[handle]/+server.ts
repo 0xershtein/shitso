@@ -34,7 +34,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			last24h: s.last24h,
 			top: top ? { key: top.key, char: top.char, label: top.label } : null,
 			counts: t.counts,
-			url: `https://shit.so/${handle}`
+			url: `https://shit.so/@${handle}`
 		},
 		{ headers: cors }
 	);

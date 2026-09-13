@@ -19,6 +19,6 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const handle = normalizeHandle(String(form.get('handle') ?? ''));
 		if (!handle) return { error: 'that is not an X handle' };
-		redirect(303, `/${handle}`);
+		redirect(303, `/@${handle}`);
 	}
 };
