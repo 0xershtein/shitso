@@ -1,8 +1,6 @@
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, or, sql } from 'drizzle-orm';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { put, del } from '@vercel/blob';
-import { generateObject } from 'ai';
-import { z } from 'zod';
 import { env } from '$env/dynamic/private';
 import { db } from './db/index';
 import { bullshitReports, bullshits, profiles } from './db/schema';
@@ -30,52 +28,6 @@ export function verifyNonce(nonce: string, voterId: string, target: string): boo
 	return v === voterId && t === target && Date.now() - Number(ts) < NONCE_TTL_MS;
 }
 
-// ---------- moderation ----------
-const Verdict = z.object({
-	is_photo_of_person: z.boolean().describe('a real photo of at least one human, not a screenshot/drawing/meme'),
-	faces: z.number().int().describe('number of human faces visible'),
-	nudity: z.boolean(),
-	violence_or_gore: z.boolean(),
-	minor_present: z.boolean().describe('anyone who looks under 18'),
-	text_or_qr: z.boolean().describe('readable text, signs, QR codes or urls in the image'),
-	hate_symbols: z.boolean()
-});
-
-export type Moderation = { ok: true } | { ok: false; reason: string };
-
-export async function moderate(jpeg: Buffer): Promise<Moderation> {
-	if (env.BULLSHIT_MODERATION === 'off') return { ok: true };
-	try {
-		const { object: v } = await generateObject({
-			model: env.BULLSHIT_MODERATION_MODEL || 'anthropic/claude-haiku-4-5',
-			schema: Verdict,
-			messages: [
-				{
-					role: 'user',
-					content: [
-						{ type: 'file', data: jpeg, mediaType: 'image/jpeg' },
-						{
-							type: 'text',
-							text: 'This is a webcam selfie a user wants to publish on a joke site. Classify it strictly. Screenshots, memes, drawings and photos of screens are not photos of a person.'
-						}
-					]
-				}
-			]
-		});
-		if (v.nudity) return { ok: false, reason: 'nudity' };
-		if (v.violence_or_gore) return { ok: false, reason: 'violence' };
-		if (v.minor_present) return { ok: false, reason: 'minor' };
-		if (v.hate_symbols) return { ok: false, reason: 'hate' };
-		if (v.text_or_qr) return { ok: false, reason: 'text' };
-		if (!v.is_photo_of_person || v.faces < 1) return { ok: false, reason: 'noface' };
-		if (v.faces > 1) return { ok: false, reason: 'manyfaces' };
-		return { ok: true };
-	} catch (e) {
-		console.error('[bullshit] moderation failed', e);
-		return { ok: false, reason: 'unavailable' };
-	}
-}
-
 // ---------- storage + rows ----------
 export interface BullshitRow {
 	id: number;
@@ -83,6 +35,7 @@ export interface BullshitRow {
 	target: string;
 	emoji: string;
 	url: string;
+	status: string; // live | pending (pending only returned to its owner)
 	createdAt: Date;
 	mine: boolean;
 }
@@ -118,7 +71,7 @@ export async function publishBullshit(opts: {
 			emoji: opts.emoji,
 			url: blob.url,
 			pathname: blob.pathname,
-			status: 'live',
+			status: 'pending',
 			reason: null,
 			reports: 0
 		})
@@ -129,7 +82,7 @@ export async function publishBullshit(opts: {
 				emoji: opts.emoji,
 				url: blob.url,
 				pathname: blob.pathname,
-				status: 'live',
+				status: 'pending',
 				reason: null,
 				reports: 0,
 				createdAt: sql`now()`
@@ -147,7 +100,9 @@ export async function wallFor(target: string, viewerId: string | null): Promise<
 		.where(
 			and(
 				eq(bullshits.target, target),
-				eq(bullshits.status, 'live'),
+				viewerId
+					? or(eq(bullshits.status, 'live'), and(eq(bullshits.status, 'pending'), eq(bullshits.voterId, viewerId)))
+					: eq(bullshits.status, 'live'),
 				gte(bullshits.createdAt, sql`now() - ${sql.raw(`interval '${BULLSHIT_TTL_DAYS} days'`)}`)
 			)
 		)
@@ -159,6 +114,7 @@ export async function wallFor(target: string, viewerId: string | null): Promise<
 		target: r.target,
 		emoji: r.emoji,
 		url: r.url,
+		status: r.status,
 		createdAt: new Date(r.createdAt),
 		mine: !!viewerId && r.voterId === viewerId
 	}));
@@ -204,4 +160,50 @@ export async function report(bullshitId: number, reporterId: string): Promise<'o
 
 function hash(s: string) {
 	return createHmac('sha256', 'bullshit').update(s).digest('hex').slice(0, 16);
+}
+
+// ---------- the inspector (manual moderation) ----------
+export interface QueueRow {
+	id: number;
+	voterHandle: string | null;
+	target: string;
+	emoji: string;
+	url: string;
+	status: string;
+	reports: number;
+	createdAt: Date;
+}
+
+export async function inspectorQueue(): Promise<{ pending: QueueRow[]; reported: QueueRow[] }> {
+	const map = (r: typeof bullshits.$inferSelect): QueueRow => ({
+		id: r.id,
+		voterHandle: r.voterHandle,
+		target: r.target,
+		emoji: r.emoji,
+		url: r.url,
+		status: r.status,
+		reports: r.reports,
+		createdAt: new Date(r.createdAt)
+	});
+	const [pending, reported] = await Promise.all([
+		db.select().from(bullshits).where(eq(bullshits.status, 'pending')).orderBy(bullshits.createdAt).limit(100),
+		db
+			.select()
+			.from(bullshits)
+			.where(and(gt(bullshits.reports, 0), or(eq(bullshits.status, 'live'), eq(bullshits.status, 'hidden'))))
+			.orderBy(desc(bullshits.reports), desc(bullshits.createdAt))
+			.limit(100)
+	]);
+	return { pending: pending.map(map), reported: reported.map(map) };
+}
+
+export async function inspect(id: number, decision: 'approve' | 'reject') {
+	if (decision === 'approve') {
+		await db.update(bullshits).set({ status: 'live', reason: null, reports: 0 }).where(eq(bullshits.id, id));
+		await db.delete(bullshitReports).where(eq(bullshitReports.bullshitId, id));
+		return;
+	}
+	const [row] = await db.select({ pathname: bullshits.pathname }).from(bullshits).where(eq(bullshits.id, id)).limit(1);
+	if (row) await del(row.pathname).catch(() => {});
+	await db.update(bullshits).set({ status: 'rejected', reason: 'inspector', url: '' }).where(eq(bullshits.id, id));
 }

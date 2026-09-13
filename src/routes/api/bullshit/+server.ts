@@ -8,7 +8,6 @@ import {
 	MAX_BYTES,
 	deleteMine,
 	issueNonce,
-	moderate,
 	publishBullshit,
 	report,
 	setWallHidden,
@@ -75,9 +74,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const jpeg = Buffer.from(m[1], 'base64');
 	if (jpeg.length < 2000 || jpeg.length > MAX_BYTES || jpeg[0] !== 0xff || jpeg[1] !== 0xd8)
 		return json({ error: 'bad image' }, { status: 400, headers: noStore });
-
-	const verdict = await moderate(jpeg);
-	if (!verdict.ok) return json({ error: t(L, `bs.reject.${verdict.reason}`), reason: verdict.reason }, { status: 422, headers: noStore });
 
 	const url = await publishBullshit({
 		voterId: session.user.id,

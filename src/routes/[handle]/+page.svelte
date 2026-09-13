@@ -257,7 +257,12 @@
 			<div class="flex gap-4 overflow-x-auto pb-3">
 				{#each data.wall as b, i (b.id)}
 					<figure class="w-40 shrink-0 rounded-sm bg-[#f5f5f0] p-1.5 shadow-lg" style="transform: rotate({((i * 7) % 5) - 2}deg)">
-						<img src={b.url} alt="" class="w-full" loading="lazy" />
+						<div class="relative">
+							<img src={b.url} alt="" class="w-full" loading="lazy" />
+							{#if b.status === 'pending'}
+								<span class="absolute top-2 left-0 bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">{t(L, 'bs.pending')}</span>
+							{/if}
+						</div>
 						<figcaption class="flex items-center justify-between px-0.5 pt-1 text-[10px] text-neutral-600">
 							<span class="truncate">{b.voterHandle ? `@${b.voterHandle}` : '?'} · {ago(L, b.createdAt, true)}</span>
 							{#if b.mine}

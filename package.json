@@ -40,8 +40,6 @@
 		"@auth/sveltekit": "^1.11.3",
 		"@resvg/resvg-js": "^2.6.2",
 		"@vercel/blob": "^2.8.0",
-		"ai": "^7.0.99",
-		"satori": "^0.33.4",
-		"zod": "^4.6.4"
+		"satori": "^0.33.4"
 	}
 }
