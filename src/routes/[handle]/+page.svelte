@@ -4,12 +4,31 @@
 	import { MIN_VOTES_FOR_TIER } from '$lib/tiers';
 	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
 	import { ago, t } from '$lib/i18n';
+	import { invalidateAll } from '$app/navigation';
+	import BullshitCam from '$lib/components/BullshitCam.svelte';
 
 	let { data, form } = $props();
 	const L = $derived(data.locale);
 
 	let pending = $state<string | null>(null);
-	let optimistic = $state<string | null>(null); // selected emoji shown before the server confirms
+	let optimistic = $state<string | null>(null);
+	let camOpen = $state(false);
+	let reported = $state<Set<number>>(new Set());
+	let wallBusy = $state(false);
+
+	async function bsAction(body: Record<string, unknown>) {
+		wallBusy = true;
+		try {
+			await fetch('/api/bullshit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+			await invalidateAll();
+		} finally {
+			wallBusy = false;
+		}
+	}
+	async function reportBs(id: number) {
+		reported = new Set([...reported, id]);
+		await fetch('/api/bullshit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'report', id }) });
+	} // selected emoji shown before the server confirms
 	const mine = $derived(optimistic ?? data.mine);
 	const top = $derived(data.tally.top ? emojiByKey(data.tally.top) : null);
 	const max = $derived(Math.max(1, ...Object.values(data.tally.counts)));
@@ -190,6 +209,14 @@
 		{:else if data.eligible && !data.eligible.ok}
 			<p class="mt-2 text-xs text-amber-400">{t(L, data.eligible.key, data.eligible.vars)}</p>
 		{/if}
+		{#if mine && data.eligible?.ok}
+			<button
+				onclick={() => (camOpen = true)}
+				class="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-neutral-700 px-4 py-2.5 text-sm font-semibold hover:border-neutral-400 hover:bg-neutral-900"
+			>
+				📸 {t(L, 'bs.button')}
+			</button>
+		{/if}
 		{#if form?.error}<p class="mt-2 text-sm text-red-400">{form.error}</p>{/if}
 	{/if}
 </section>
@@ -207,6 +234,42 @@
 		{@render stat(t(L, 'profile.last24h'), data.stats.last24h, data.stats.prev24h ? t(L, 'profile.dayBefore', { n: data.stats.prev24h }) : undefined)}
 		{@render stat(t(L, 'profile.mindChanges'), Math.max(0, data.stats.changes - data.stats.voters), t(L, 'profile.editedOrRemoved'))}
 		{@render stat(t(L, 'profile.lastShit'), ago(L, data.stats.lastAt), data.stats.firstAt ? t(L, 'profile.first', { t: ago(L, data.stats.firstAt) }) : undefined)}
+	</section>
+
+	<section class="mt-10">
+		<div class="mb-3 flex items-baseline justify-between">
+			<h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-500">📸 {t(L, 'bs.wall')}</h2>
+			{#if data.isSelf}
+				<button
+					onclick={() => bsAction({ handle: data.handle, action: data.wallHidden ? 'show' : 'hide' })}
+					disabled={wallBusy}
+					class="text-xs text-neutral-500 underline hover:text-neutral-300 disabled:opacity-50"
+				>
+					{data.wallHidden ? t(L, 'bs.show') : t(L, 'bs.hide')}
+				</button>
+			{/if}
+		</div>
+		{#if data.isSelf && data.wallHidden}
+			<p class="text-sm text-neutral-500">{t(L, 'bs.hiddenNote')}</p>
+		{:else if data.wall.length === 0}
+			{#if !data.wallHidden}<p class="text-sm text-neutral-600">{t(L, 'bs.wallEmpty')}</p>{/if}
+		{:else}
+			<div class="flex gap-4 overflow-x-auto pb-3">
+				{#each data.wall as b, i (b.id)}
+					<figure class="w-40 shrink-0 rounded-sm bg-[#f5f5f0] p-1.5 shadow-lg" style="transform: rotate({((i * 7) % 5) - 2}deg)">
+						<img src={b.url} alt="" class="w-full" loading="lazy" />
+						<figcaption class="flex items-center justify-between px-0.5 pt-1 text-[10px] text-neutral-600">
+							<span class="truncate">{b.voterHandle ? `@${b.voterHandle}` : '?'} · {ago(L, b.createdAt, true)}</span>
+							{#if b.mine}
+								<button onclick={() => bsAction({ handle: data.handle, action: 'delete' })} disabled={wallBusy} class="text-red-700 hover:underline">{t(L, 'bs.delete')}</button>
+							{:else if data.session?.user}
+								<button onclick={() => reportBs(b.id)} disabled={reported.has(b.id)} class="hover:underline disabled:opacity-60">{reported.has(b.id) ? t(L, 'bs.reported') : t(L, 'bs.report')}</button>
+							{/if}
+						</figcaption>
+					</figure>
+				{/each}
+			</div>
+		{/if}
 	</section>
 
 	<section class="mt-10">
@@ -323,6 +386,17 @@
 		class="inline-block rounded-md border border-neutral-800 px-3 py-1.5 hover:bg-neutral-900 hover:text-neutral-200">{t(L, 'profile.share')}</a
 	>
 </section>
+
+{#if camOpen}
+	<BullshitCam
+		handle={data.handle}
+		emojiChar={emojiByKey(mine ?? '')?.char ?? '💩'}
+		locale={L}
+		ttlDays={data.bullshitTtlDays}
+		onclose={() => (camOpen = false)}
+		ondone={() => invalidateAll()}
+	/>
+{/if}
 
 <style>
 	:global(.burst) {

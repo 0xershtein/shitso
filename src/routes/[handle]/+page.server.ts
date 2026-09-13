@@ -8,6 +8,7 @@ import { t } from '$lib/i18n';
 import { exempt, submitVote } from '$lib/server/vote';
 import { readFor } from '$lib/read';
 import { profileFor } from '$lib/server/profiles';
+import { BULLSHIT_TTL_DAYS, wallFor, wallHidden } from '$lib/server/bullshit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
@@ -29,9 +30,11 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		last24h: stats.last24h,
 		distinctEmojis: tally.distinctEmojis
 	});
-	const [gif, profile] = await Promise.all([
+	const [gif, profile, wall, hidden] = await Promise.all([
 		gifFor(handle, tier.gifQuery),
-		profileFor(handle, tally.total > 0)
+		profileFor(handle, tally.total > 0),
+		wallFor(handle, session?.user?.id ?? null),
+		wallHidden(handle)
 	]);
 
 	return {
@@ -46,6 +49,9 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		gif,
 		profile: profile && !profile.notFound ? { name: profile.name, followers: profile.followers, following: profile.following } : null,
 		read: readFor(tally.counts),
+		wall,
+		wallHidden: hidden,
+		bullshitTtlDays: BULLSHIT_TTL_DAYS,
 		isSelf: session?.user?.handle === handle,
 		eligible: session?.user ? eligibility(session.user, exempt()) : null
 	};

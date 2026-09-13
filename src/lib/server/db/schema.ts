@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, index, serial, integer, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, primaryKey, index, uniqueIndex, serial, integer, boolean } from 'drizzle-orm/pg-core';
 
 export const votes = pgTable(
 	'votes',
@@ -36,5 +36,35 @@ export const profiles = pgTable('profiles', {
 	avatar: text('avatar'),
 	source: text('source').notNull(),
 	notFound: boolean('not_found').notNull().default(false),
+	bullshitHidden: boolean('bullshit_hidden').notNull().default(false), // target opted out of the wall
 	fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow()
 });
+
+// "give a bullshit": one webcam polaroid per voter per target.
+export const bullshits = pgTable(
+	'bullshits',
+	{
+		id: serial('id').primaryKey(),
+		voterId: text('voter_id').notNull(),
+		voterHandle: text('voter_handle'),
+		target: text('target').notNull(),
+		emoji: text('emoji').notNull(), // the vote it came with
+		url: text('url').notNull(), // public blob url
+		pathname: text('pathname').notNull(), // blob pathname for deletion
+		status: text('status').notNull().default('live'), // live | rejected | hidden
+		reason: text('reason'), // moderation / hide reason
+		reports: integer('reports').notNull().default(0),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(t) => [uniqueIndex('bullshits_voter_target_idx').on(t.voterId, t.target), index('bullshits_target_idx').on(t.target, t.status)]
+);
+
+export const bullshitReports = pgTable(
+	'bullshit_reports',
+	{
+		bullshitId: integer('bullshit_id').notNull(),
+		reporterId: text('reporter_id').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(t) => [primaryKey({ columns: [t.bullshitId, t.reporterId] })]
+);

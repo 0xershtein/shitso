@@ -22,6 +22,13 @@
       "when": 1789298432922,
       "tag": "0002_fine_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789298903208,
+      "tag": "0003_curved_blue_marvel",
+      "breakpoints": true
     }
   ]
 }
