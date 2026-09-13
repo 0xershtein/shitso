@@ -3,8 +3,9 @@
 	import { EMOJIS, emojiByKey } from '$lib/emojis';
 	import { tierFor } from '$lib/tiers';
 	import { ago, t } from '$lib/i18n';
+	import Search from '$lib/components/Search.svelte';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	const L = $derived(data.locale);
 </script>
 
@@ -27,14 +28,9 @@
 		<span class="text-lg">🎁</span>{t(L, 'home.gift')}
 	</p>
 
-	<form method="POST" action="?/search" use:enhance class="mx-auto mt-8 flex max-w-md gap-2">
-		<div class="flex flex-1 items-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 focus-within:border-neutral-600">
-			<span class="text-neutral-500">@</span>
-			<input name="handle" placeholder={t(L, 'home.placeholder')} autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full bg-transparent px-2 py-3 outline-none placeholder:text-neutral-600" />
-		</div>
-		<button class="rounded-lg bg-white px-4 font-semibold text-black hover:bg-neutral-200">{t(L, 'home.lookup')}</button>
-	</form>
-	{#if form?.error}<p class="mt-2 text-sm text-red-400">{form.error}</p>{/if}
+	<div class="mt-8">
+		<Search locale={L} popular={(data.hot.length ? data.hot : data.shit).map((r) => ({ handle: r.target, total: r.total, shitScore: r.shitScore, tier: tierFor(r.shitScore, r.total).key }))} />
+	</div>
 
 	<div class="mt-6 flex flex-wrap justify-center gap-1 text-2xl">
 		{#each EMOJIS as e (e.key)}<span title={t(L, `emoji.${e.key}`)}>{e.char}</span>{/each}

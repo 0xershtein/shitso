@@ -6,6 +6,10 @@
 	import { ago, t } from '$lib/i18n';
 	import { invalidateAll } from '$app/navigation';
 	import BullshitCam from '$lib/components/BullshitCam.svelte';
+	import QuadrantMap from '$lib/components/QuadrantMap.svelte';
+	import Pulse from '$lib/components/Pulse.svelte';
+	import { onMount } from 'svelte';
+	import { pushRecent } from '$lib/recent';
 
 	let { data, form } = $props();
 	const L = $derived(data.locale);
@@ -13,6 +17,7 @@
 	let pending = $state<string | null>(null);
 	let optimistic = $state<string | null>(null);
 	let camOpen = $state(false);
+	onMount(() => pushRecent(data.handle));
 	let reported = $state<Set<number>>(new Set());
 	let wallBusy = $state(false);
 
@@ -165,7 +170,7 @@
 
 <section class="mt-2">
 	<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500" lang={data.mine ? L : 'en'}>
-		{mine ? t(L, 'profile.yours') : t(L, 'profile.give')}
+		{t(L, 'profile.give')}
 	</h2>
 
 	{#if data.isSelf}
@@ -307,31 +312,33 @@
 		{#if !data.read.ready}
 			<p class="text-sm text-neutral-500">{t(L, 'read.pending', { n: MIN_VOTES_FOR_TIER })}</p>
 		{:else}
-			<div class="grid gap-4 sm:grid-cols-[1fr_1.1fr]">
-				<div class="space-y-3 rounded-lg border border-neutral-900 bg-neutral-950/60 p-4">
-					{#each ['warmth', 'competence', 'dominance', 'honesty'] as axis (axis)}
-						{@const v = data.read.axes[axis as keyof typeof data.read.axes]}
-						<div>
-							<div class="mb-1 flex justify-between text-[11px] text-neutral-500">
-								<span>{t(L, `read.${axis}.lo`)}</span>
-								<span class="font-semibold uppercase tracking-wider text-neutral-400">{t(L, `read.${axis}`)}</span>
-								<span>{t(L, `read.${axis}.hi`)}</span>
+			<div class="grid gap-4 sm:grid-cols-[1fr_1.2fr]">
+				<div>
+					<QuadrantMap warmth={data.read.axes.warmth} competence={data.read.axes.competence} quadrant={data.read.quadrant} locale={L} />
+					<div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+						{#each ['dominance', 'honesty'] as axis (axis)}
+							{@const v = data.read.axes[axis as keyof typeof data.read.axes]}
+							<div>
+								<div class="mb-1 flex justify-between text-[10px] text-neutral-500">
+									<span>{t(L, `read.${axis}.lo`)}</span>
+									<span class="font-semibold uppercase tracking-wider text-neutral-400">{t(L, `read.${axis}`)}</span>
+									<span>{t(L, `read.${axis}.hi`)}</span>
+								</div>
+								<div class="relative h-1.5 rounded bg-neutral-900">
+									<div class="absolute top-0 bottom-0 left-1/2 w-px bg-neutral-700"></div>
+									<div class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-950 {v < 0 ? 'bg-amber-400' : 'bg-emerald-400'}" style="left: {50 + v * 50}%"></div>
+								</div>
 							</div>
-							<div class="relative h-2 rounded bg-neutral-900">
-								<div class="absolute top-0 bottom-0 left-1/2 w-px bg-neutral-700"></div>
-								<div
-									class="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-950 {v < 0 ? 'bg-amber-400' : 'bg-emerald-400'}"
-									style="left: {50 + v * 50}%"
-								></div>
-							</div>
-						</div>
-					{/each}
+						{/each}
+					</div>
 				</div>
-				<div class="flex flex-col justify-between rounded-lg border border-neutral-900 bg-neutral-950/60 p-4">
+				<div class="flex flex-col justify-between rounded-lg border border-neutral-900 bg-neutral-950/60 p-5">
 					<div>
-						<div class="text-[11px] uppercase tracking-wider text-neutral-500">{t(L, 'read.quadrant')}: <span class="text-neutral-300">{t(L, `read.q.${data.read.quadrant}`)}</span></div>
-						<div class="mt-2 text-2xl font-black">{t(L, `read.a.${data.read.archetype}`)}</div>
-						<p class="mt-1 text-sm text-neutral-400">{t(L, `read.a.${data.read.archetype}.d`)}</p>
+						<div class="text-[11px] uppercase tracking-wider text-neutral-500">{t(L, 'read.quadrant')}</div>
+						<div class="mt-1 text-lg font-bold {data.tier.accent}">{t(L, `read.q.${data.read.quadrant}`)}</div>
+						<div class="mt-4 text-[11px] uppercase tracking-wider text-neutral-500">{t(L, 'read.archetype')}</div>
+						<div class="mt-1 text-3xl font-black">{t(L, `read.a.${data.read.archetype}`)}</div>
+						<p class="mt-2 text-sm leading-relaxed text-neutral-400">{t(L, `read.a.${data.read.archetype}.d`)}</p>
 						<p class="mt-3 text-xs text-neutral-500">
 							{t(L, 'read.because')}
 							{#each data.read.evidence as ev, i (ev.key)}
@@ -339,7 +346,7 @@
 							{/each}
 						</p>
 					</div>
-					<a href={data.read.source.url} target="_blank" rel="noopener" class="mt-4 text-[11px] text-neutral-500 underline decoration-neutral-800 hover:text-neutral-300">
+					<a href={data.read.source.url} target="_blank" rel="noopener" class="mt-5 text-[11px] text-neutral-500 underline decoration-neutral-800 hover:text-neutral-300">
 						{t(L, 'read.source')}: {t(L, `read.s.${data.read.source.key}`)}
 					</a>
 				</div>
@@ -359,17 +366,8 @@
 				{/if}
 			</p>
 		</div>
-		<div class="flex h-24 items-end gap-1 rounded-lg border border-neutral-900 bg-neutral-950/60 p-3">
-			{#each data.rhythm as d (d.day)}
-				{@const total = d.bad + d.good}
-				<div class="group relative flex h-full flex-1 flex-col justify-end" title="{d.day}: {d.bad} / {d.good}">
-					<div class="w-full overflow-hidden rounded-sm" style="height: {(total / rhythmMax) * 100}%">
-						<div class="bg-emerald-500" style="height: {total ? (d.good / total) * 100 : 0}%"></div>
-						<div class="bg-amber-500" style="height: {total ? (d.bad / total) * 100 : 0}%"></div>
-					</div>
-					{#if total === 0}<div class="h-px w-full bg-neutral-800"></div>{/if}
-				</div>
-			{/each}
+		<div class="rounded-lg border border-neutral-900 bg-neutral-950/60 px-2 pt-2">
+			<Pulse days={data.rhythm} trendUp={typeof trend === 'number' ? trend >= 0 : trend === 'new'} />
 		</div>
 		<div class="mt-1 flex justify-between text-[10px] text-neutral-600">
 			<span>{t(L, 'profile.daysAgo')}</span><span>{t(L, 'profile.today')}</span>
