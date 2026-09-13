@@ -3,6 +3,7 @@ import { statsFor, tallyFor } from '$lib/server/db/queries';
 import { EMOJIS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
 import { t } from '$lib/i18n';
+import { readFor } from '$lib/read';
 import type { RequestHandler } from './$types';
 
 const cors = {
@@ -39,6 +40,17 @@ export const GET: RequestHandler = async ({ params }) => {
 			virality: { score: virality.score, label: t('en', `v.${virality.label}`) },
 			last24h: s.last24h,
 			top: top ? { key: top.key, char: top.char, label: t('en', `emoji.${top.key}`) } : null,
+			read: (() => {
+				const r = readFor(tally.counts);
+				return {
+					ready: r.ready,
+					axes: r.axes,
+					quadrant: r.quadrant,
+					archetype: r.archetype,
+					label: t('en', `read.a.${r.archetype}`),
+					source: r.source.url
+				};
+			})(),
 			counts: tally.counts,
 			url: `https://shit.so/@${handle}`
 		},

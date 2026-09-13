@@ -195,6 +195,51 @@
 	</section>
 
 	<section class="mt-10">
+		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'read.title')}</h2>
+		{#if !data.read.ready}
+			<p class="text-sm text-neutral-500">{t(L, 'read.pending', { n: MIN_VOTES_FOR_TIER })}</p>
+		{:else}
+			<div class="grid gap-4 sm:grid-cols-[1fr_1.1fr]">
+				<div class="space-y-3 rounded-lg border border-neutral-900 bg-neutral-950/60 p-4">
+					{#each ['warmth', 'competence', 'dominance', 'honesty'] as axis (axis)}
+						{@const v = data.read.axes[axis as keyof typeof data.read.axes]}
+						<div>
+							<div class="mb-1 flex justify-between text-[11px] text-neutral-500">
+								<span>{t(L, `read.${axis}.lo`)}</span>
+								<span class="font-semibold uppercase tracking-wider text-neutral-400">{t(L, `read.${axis}`)}</span>
+								<span>{t(L, `read.${axis}.hi`)}</span>
+							</div>
+							<div class="relative h-2 rounded bg-neutral-900">
+								<div class="absolute top-0 bottom-0 left-1/2 w-px bg-neutral-700"></div>
+								<div
+									class="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-950 {v < 0 ? 'bg-amber-400' : 'bg-emerald-400'}"
+									style="left: {50 + v * 50}%"
+								></div>
+							</div>
+						</div>
+					{/each}
+				</div>
+				<div class="flex flex-col justify-between rounded-lg border border-neutral-900 bg-neutral-950/60 p-4">
+					<div>
+						<div class="text-[11px] uppercase tracking-wider text-neutral-500">{t(L, 'read.quadrant')}: <span class="text-neutral-300">{t(L, `read.q.${data.read.quadrant}`)}</span></div>
+						<div class="mt-2 text-2xl font-black">{t(L, `read.a.${data.read.archetype}`)}</div>
+						<p class="mt-1 text-sm text-neutral-400">{t(L, `read.a.${data.read.archetype}.d`)}</p>
+						<p class="mt-3 text-xs text-neutral-500">
+							{t(L, 'read.because')}
+							{#each data.read.evidence as ev, i (ev.key)}
+								{i > 0 ? ' · ' : ' '}{emojiByKey(ev.key)?.char} {Math.round(ev.share * 100)}%
+							{/each}
+						</p>
+					</div>
+					<a href={data.read.source.url} target="_blank" rel="noopener" class="mt-4 text-[11px] text-neutral-500 underline decoration-neutral-800 hover:text-neutral-300">
+						{t(L, 'read.source')}: {t(L, `read.s.${data.read.source.key}`)}
+					</a>
+				</div>
+			</div>
+		{/if}
+	</section>
+
+	<section class="mt-10">
 		<div class="mb-3 flex items-baseline justify-between">
 			<h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'profile.rhythm')}</h2>
 			<p class="text-xs text-neutral-400">

@@ -6,6 +6,7 @@ import { tierFor, viralityFor } from '$lib/tiers';
 import { eligibility } from '$lib/eligibility';
 import { t } from '$lib/i18n';
 import { exempt, submitVote } from '$lib/server/vote';
+import { readFor } from '$lib/read';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
@@ -39,6 +40,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		tier,
 		virality,
 		gif,
+		read: readFor(tally.counts),
 		isSelf: session?.user?.handle === handle,
 		eligible: session?.user ? eligibility(session.user, exempt()) : null
 	};

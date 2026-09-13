@@ -61,6 +61,7 @@ export interface OgInput {
 	total: number;
 	tier: Tier;
 	topChar: string | null;
+	archetype: string | null;
 }
 
 const h = (type: string, style: Record<string, unknown>, children?: unknown) => ({
@@ -73,7 +74,7 @@ export async function renderOg(i: OgInput): Promise<Buffer> {
 	const rated = i.total >= 3;
 	const headline = rated ? `${i.shitScore}% shit` : 'unrated';
 	const sub = rated
-		? `${i.total} ${i.total === 1 ? 'person' : 'people'} gave a shit${i.topChar ? ` · mostly ${i.topChar}` : ''}`
+		? `${i.total} ${i.total === 1 ? 'person' : 'people'} gave a shit${i.archetype ? ` · ${i.archetype}` : ''}${i.topChar ? ` · mostly ${i.topChar}` : ''}`
 		: i.total > 0
 			? `${i.total} ${i.total === 1 ? 'vote' : 'votes'} so far. needs 3 for a verdict.`
 			: 'nobody has given a shit yet. be first.';
