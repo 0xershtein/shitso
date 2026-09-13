@@ -24,7 +24,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!target) return json({ error: 'bad handle' }, { status: 400, headers });
 
 	const session = await locals.auth();
-	if (session?.user?.id && !rateLimit(`vote:${session.user.id}`, 40, 60_000).ok)
+	if (session?.user?.id && !(await rateLimit(`vote:${session.user.id}`, 40, 60_000)).ok)
 		return json({ error: 'slow down' }, { status: 429, headers });
 	const r = await submitVote(session, target, String(body.emoji ?? ''));
 	if (!r.ok) return json({ error: t(locals.locale, r.key, r.vars ?? {}), code: r.key }, { status: r.status, headers });

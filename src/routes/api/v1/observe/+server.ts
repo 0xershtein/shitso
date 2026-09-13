@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const headers = corsHeaders(request.headers.get('origin'), { 'cache-control': 'no-store' });
 	const session = await locals.auth();
 	if (!session?.user?.id) return json({ error: 'sign in first' }, { status: 401, headers });
-	if (!rateLimit(`observe:${session.user.id}`, 60, 60_000).ok) return json({ error: 'slow down' }, { status: 429, headers });
+	if (!(await rateLimit(`observe:${session.user.id}`, 60, 60_000)).ok) return json({ error: 'slow down' }, { status: 429, headers });
 
 	let body: { handle?: string; followers?: unknown; following?: unknown; name?: unknown; avatar?: unknown } = {};
 	try {

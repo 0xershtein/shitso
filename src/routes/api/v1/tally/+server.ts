@@ -13,7 +13,7 @@ export const OPTIONS: RequestHandler = async ({ request }) =>
 /** GET ?handles=a,b,c (max 50). Includes the caller's own vote when signed in. */
 export const GET: RequestHandler = async ({ url, locals, request }) => {
 	const headers = corsHeaders(request.headers.get('origin'), { 'cache-control': 'no-store' });
-	if (!rateLimit(`tally:${clientIp(request)}`, 120, 60_000).ok) return json({ error: 'slow down' }, { status: 429, headers });
+	if (!(await rateLimit(`tally:${clientIp(request)}`, 120, 60_000)).ok) return json({ error: 'slow down' }, { status: 429, headers });
 	const handles = Array.from(
 		new Set(
 			(url.searchParams.get('handles') ?? '')

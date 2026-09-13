@@ -39,6 +39,7 @@
 	"dependencies": {
 		"@auth/sveltekit": "^1.11.3",
 		"@resvg/resvg-js": "^2.6.2",
+		"@upstash/redis": "^1.38.4",
 		"@vercel/blob": "^2.8.0",
 		"satori": "^0.33.4"
 	}

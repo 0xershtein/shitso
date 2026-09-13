@@ -65,7 +65,7 @@ export const actions: Actions = {
 		if (!handle) error(404);
 		const session = await locals.auth();
 		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/@${handle}`);
-		if (!rateLimit(`vote:${session.user.id}`, 40, 60_000).ok) return fail(429, { error: 'slow down' });
+		if (!(await rateLimit(`vote:${session.user.id}`, 40, 60_000)).ok) return fail(429, { error: 'slow down' });
 		const form = await request.formData();
 		const r = await submitVote(session, handle, String(form.get('emoji') ?? ''));
 		if (!r.ok) return fail(r.status, { error: t(locals.locale, r.key, r.vars ?? {}) });

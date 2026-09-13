@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 export const actions: Actions = {
 	search: async ({ request, locals }) => {
-		if (!rateLimit(`search:${clientIp(request)}`, 30, 60_000).ok) return { error: 'slow down' };
+		if (!(await rateLimit(`search:${clientIp(request)}`, 30, 60_000)).ok) return { error: 'slow down' };
 		const form = await request.formData();
 		const handle = normalizeHandle(String(form.get('handle') ?? ''));
 		if (!handle) return { error: t(locals.locale, 'home.badHandle') };
