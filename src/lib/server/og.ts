@@ -56,6 +56,9 @@ export interface OgInput {
 	archetype: string | null;
 }
 
+const stamp = () =>
+	h('div', { position: 'absolute', right: 48, top: 24, fontSize: 220, opacity: 0.16 }, '💩');
+
 const h = (type: string, style: Record<string, unknown>, children?: unknown) => ({
 	type,
 	props: { style, children }
@@ -80,11 +83,13 @@ export async function renderOg(i: OgInput): Promise<Buffer> {
 			flexDirection: 'column',
 			justifyContent: 'space-between',
 			padding: 64,
+			position: 'relative',
 			background: `radial-gradient(ellipse at top left, ${TINT[i.tier.key]} 0%, #0a0a0a 65%)`,
 			color: '#f5f5f5',
 			fontFamily: 'Inter'
 		},
 		[
+			stamp(),
 			h('div', { display: 'flex', alignItems: 'center', gap: 36 }, [
 				img
 					? {
@@ -149,11 +154,13 @@ export async function renderHomeOg(stats: { votes: number; targets: number }): P
 			flexDirection: 'column',
 			justifyContent: 'space-between',
 			padding: 72,
+			position: 'relative',
 			background: 'radial-gradient(ellipse at top left, #3f2a12 0%, #0a0a0a 65%)',
 			color: '#f5f5f5',
 			fontFamily: 'Inter'
 		},
 		[
+			stamp(),
 			h('div', { fontSize: 40, color: '#a3a3a3' }, '💩 shit.so'),
 			h('div', { display: 'flex', flexDirection: 'column', gap: 18 }, [
 				h('div', { fontSize: 150, letterSpacing: -6, lineHeight: 1 }, 'give a shit.'),

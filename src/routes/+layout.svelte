@@ -1,6 +1,5 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { env } from '$env/dynamic/public';
 	import { dev } from '$app/environment';
@@ -23,7 +22,11 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+	<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png" />
+	<link rel="apple-touch-icon" href="/icons/icon-180.png" />
+	<link rel="manifest" href="/site.webmanifest" />
+	<meta name="theme-color" content="#0a0a0a" />
 	<meta property="og:site_name" content="shit.so" />
 	<meta name="twitter:site" content="@erendotdmg" />
 	{#if page.data.noindex}<meta name="robots" content="noindex" />{/if}
