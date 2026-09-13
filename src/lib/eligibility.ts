@@ -1,4 +1,4 @@
-export const MIN_FOLLOWERS = 10;
+export const MIN_FOLLOWERS = 3;
 export const MIN_ACCOUNT_AGE_DAYS = 0; // age check off for launch; raise if bots show up
 
 export interface VoterFacts {

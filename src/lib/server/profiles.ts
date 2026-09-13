@@ -8,7 +8,7 @@ export interface ProfileFacts {
 	name: string | null;
 	followers: number | null;
 	following: number | null;
-	source: 'x' | 'extension' | 'login' | 'owner';
+	source: 'x' | 'extension' | 'login' | 'owner' | 'avatar';
 	fetchedAt: Date;
 	notFound: boolean;
 }
@@ -23,7 +23,7 @@ async function stored(handle: string): Promise<ProfileFacts | null> {
 
 function fresh(p: ProfileFacts | null): p is ProfileFacts {
 	if (!p) return false;
-	const ttl = p.source === 'extension' ? OBS_TTL_MS : p.source === 'owner' ? 0 : X_TTL_MS;
+	const ttl = p.source === 'extension' ? OBS_TTL_MS : p.source === 'owner' || p.source === 'avatar' ? 0 : X_TTL_MS;
 	return Date.now() - p.fetchedAt.getTime() < ttl;
 }
 

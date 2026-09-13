@@ -18,7 +18,7 @@ export async function rememberAvatar(handle: string, url: string | null | undefi
 	const hi = url.replace(/_(normal|bigger|mini|200x200)\./, '_400x400.');
 	await db
 		.insert(profiles)
-		.values({ handle, source: 'login', avatar: hi })
+		.values({ handle, source: 'avatar', avatar: hi })
 		.onConflictDoUpdate({ target: profiles.handle, set: { avatar: hi } });
 }
 
@@ -49,7 +49,7 @@ export async function resolveAvatar(handle: string): Promise<string | null> {
 		});
 		await db
 			.insert(profiles)
-			.values({ handle, source: 'login', avatar: blob.url })
+			.values({ handle, source: 'avatar', avatar: blob.url })
 			.onConflictDoUpdate({ target: profiles.handle, set: { avatar: blob.url } });
 		return blob.url;
 	} catch {
