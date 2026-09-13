@@ -6,7 +6,7 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth();
 	if (!isAdmin(session)) error(404, 'nothing here');
-	return await inspectorQueue();
+	return { ...(await inspectorQueue()), noindex: true };
 };
 
 export const actions: Actions = {

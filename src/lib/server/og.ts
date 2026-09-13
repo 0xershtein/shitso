@@ -137,3 +137,40 @@ export async function renderOg(i: OgInput): Promise<Buffer> {
 	});
 	return new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng();
 }
+
+/** Generic card for the home page and unspecific shares. */
+export async function renderHomeOg(stats: { votes: number; targets: number }): Promise<Buffer> {
+	const tree = h(
+		'div',
+		{
+			width: 1200,
+			height: 630,
+			display: 'flex',
+			flexDirection: 'column',
+			justifyContent: 'space-between',
+			padding: 72,
+			background: 'radial-gradient(ellipse at top left, #3f2a12 0%, #0a0a0a 65%)',
+			color: '#f5f5f5',
+			fontFamily: 'Inter'
+		},
+		[
+			h('div', { fontSize: 40, color: '#a3a3a3' }, '💩 shit.so'),
+			h('div', { display: 'flex', flexDirection: 'column', gap: 18 }, [
+				h('div', { fontSize: 150, letterSpacing: -6, lineHeight: 1 }, 'give a shit.'),
+				h('div', { fontSize: 38, color: '#a3a3a3' }, 'rate anyone on X with one of ten emojis. one account, one vote.'),
+				h('div', { fontSize: 52, letterSpacing: 4 }, '💩 🧢 🤡 🐍 🤖 🧠 🔥 🐐 🫡 💎')
+			]),
+			h('div', { display: 'flex', justifyContent: 'space-between', fontSize: 30, color: '#737373' }, [
+				h('div', {}, `${stats.votes} shits given about ${stats.targets} people`),
+				h('div', {}, 'no ads. no payments. never.')
+			])
+		]
+	);
+	const svg = await satori(tree as never, {
+		width: 1200,
+		height: 630,
+		fonts: [{ name: 'Inter', data: font, weight: 800, style: 'normal' }],
+		loadAdditionalAsset: async (code, segment) => (code === 'emoji' ? twemoji(segment) : '')
+	});
+	return new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng();
+}

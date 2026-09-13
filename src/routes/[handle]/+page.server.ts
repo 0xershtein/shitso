@@ -6,6 +6,8 @@ import { tierFor, viralityFor } from '$lib/tiers';
 import { eligibility } from '$lib/eligibility';
 import { t } from '$lib/i18n';
 import { exempt, submitVote } from '$lib/server/vote';
+import { memo, forget } from '$lib/server/memo';
+import { rateLimit, clientIp } from '$lib/server/ratelimit';
 import { readFor } from '$lib/read';
 import { profileFor } from '$lib/server/profiles';
 import { BULLSHIT_TTL_DAYS, wallFor, wallHidden } from '$lib/server/bullshit';
@@ -18,10 +20,10 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 
 	const session = await locals.auth();
 	const [tally, mine, stats, rhythm] = await Promise.all([
-		tallyFor(handle),
+		memo(`p:${handle}:tally`, 5_000, () => tallyFor(handle)),
 		session?.user?.id ? myVote(session.user.id, handle) : null,
-		statsFor(handle),
-		rhythmFor(handle)
+		memo(`p:${handle}:stats`, 10_000, () => statsFor(handle)),
+		memo(`p:${handle}:rhythm`, 30_000, () => rhythmFor(handle))
 	]);
 	const tier = tierFor(tally.shitScore, tally.total);
 	const virality = viralityFor({
@@ -63,9 +65,12 @@ export const actions: Actions = {
 		if (!handle) error(404);
 		const session = await locals.auth();
 		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/@${handle}`);
+		if (!rateLimit(`vote:${session.user.id}`, 40, 60_000).ok) return fail(429, { error: 'slow down' });
 		const form = await request.formData();
 		const r = await submitVote(session, handle, String(form.get('emoji') ?? ''));
 		if (!r.ok) return fail(r.status, { error: t(locals.locale, r.key, r.vars ?? {}) });
+		forget(`p:${handle}:`);
+		forget('home:');
 		return { ok: true };
 	}
 };

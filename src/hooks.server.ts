@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { handle as auth } from './auth';
@@ -31,3 +31,8 @@ const locale: Handle = async ({ event, resolve }) => {
 };
 
 export const handle = sequence(canonical, locale, auth);
+
+export const handleError: HandleServerError = ({ error, event, status }) => {
+	if (status !== 404) console.error(`[error] ${status} ${event.request.method} ${event.url.pathname}`, error);
+	return { message: status === 404 ? 'not found' : 'something went sideways' };
+};

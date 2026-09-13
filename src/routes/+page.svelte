@@ -8,6 +8,18 @@
 	const L = $derived(data.locale);
 </script>
 
+<svelte:head>
+	<title>shit.so · give a shit</title>
+	<meta name="description" content={t(L, 'home.sub')} />
+	<link rel="canonical" href="https://shit.so/" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://shit.so/" />
+	<meta property="og:title" content="shit.so · give a shit" />
+	<meta property="og:description" content={t(L, 'home.sub')} />
+	<meta property="og:image" content="{data.origin}/og.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+</svelte:head>
+
 <section class="py-10 text-center">
 	<h1 class="text-4xl font-black tracking-tight sm:text-5xl" lang="en">{t(L, 'home.title')}</h1>
 	<p class="mx-auto mt-3 max-w-md text-neutral-400">{t(L, 'home.sub')}</p>

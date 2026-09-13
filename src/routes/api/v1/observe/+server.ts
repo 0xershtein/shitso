@@ -3,6 +3,7 @@ import { normalizeHandle } from '$lib/emojis';
 import { observe } from '$lib/server/profiles';
 import { rememberAvatar } from '$lib/server/avatar';
 import { corsHeaders } from '$lib/server/cors';
+import { rateLimit } from '$lib/server/ratelimit';
 import type { RequestHandler } from './$types';
 
 export const OPTIONS: RequestHandler = async ({ request }) =>
@@ -13,6 +14,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const headers = corsHeaders(request.headers.get('origin'), { 'cache-control': 'no-store' });
 	const session = await locals.auth();
 	if (!session?.user?.id) return json({ error: 'sign in first' }, { status: 401, headers });
+	if (!rateLimit(`observe:${session.user.id}`, 60, 60_000).ok) return json({ error: 'slow down' }, { status: 429, headers });
 
 	let body: { handle?: string; followers?: unknown; following?: unknown; name?: unknown; avatar?: unknown } = {};
 	try {

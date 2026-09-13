@@ -4,6 +4,7 @@ import { EMOJIS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
 import { t } from '$lib/i18n';
 import { readFor } from '$lib/read';
+import { memo } from '$lib/server/memo';
 import type { RequestHandler } from './$types';
 
 const cors = {
@@ -17,7 +18,10 @@ export const OPTIONS: RequestHandler = async () => new Response(null, { headers:
 export const GET: RequestHandler = async ({ params }) => {
 	const handle = normalizeHandle(params.handle);
 	if (!handle) return json({ error: 'bad handle' }, { status: 400, headers: cors });
-	const [tally, s] = await Promise.all([tallyFor(handle), statsFor(handle)]);
+	const [tally, s] = await Promise.all([
+		memo(`p:${handle}:tally`, 5_000, () => tallyFor(handle)),
+		memo(`p:${handle}:stats`, 10_000, () => statsFor(handle))
+	]);
 	const top = EMOJIS.find((e) => e.key === tally.top);
 	const tier = tierFor(tally.shitScore, tally.total);
 	const virality = viralityFor({

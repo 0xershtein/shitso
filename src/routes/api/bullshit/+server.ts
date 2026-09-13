@@ -13,6 +13,8 @@ import {
 	setWallHidden,
 	verifyNonce
 } from '$lib/server/bullshit';
+import { rateLimit } from '$lib/server/ratelimit';
+import { forget } from '$lib/server/memo';
 import type { RequestHandler } from './$types';
 
 const noStore = { 'cache-control': 'no-store' };
@@ -36,6 +38,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const L = locals.locale;
 	const session = await locals.auth();
 	if (!session?.user?.id) return json({ error: t(L, 'elig.signin') }, { status: 401, headers: noStore });
+	if (!rateLimit(`bs:${session.user.id}`, 20, 10 * 60_000).ok) return json({ error: 'slow down' }, { status: 429, headers: noStore });
 	let body: { handle?: string; nonce?: string; image?: string; action?: string; id?: number } = {};
 	try {
 		body = await request.json();
@@ -82,5 +85,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		emoji: mine,
 		jpeg
 	});
+	forget('home:bs');
 	return json({ ok: true, url }, { headers: noStore });
 };

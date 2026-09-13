@@ -24,8 +24,9 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>shit.so</title>
-	<meta name="description" content={t(L, 'home.sub')} />
+	<meta property="og:site_name" content="shit.so" />
+	<meta name="twitter:site" content="@erendotdmg" />
+	{#if page.data.noindex}<meta name="robots" content="noindex" />{/if}
 	{#if GA}
 		<script async src="https://www.googletagmanager.com/gtag/js?id={GA}"></script>
 		<script>

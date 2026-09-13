@@ -88,6 +88,10 @@
 
 <svelte:head>
 	<title>@{data.handle} · {rated ? tierLabel : t(L, 'profile.tierPending')} · shit.so</title>
+	<meta name="description" content="@{data.handle}: {data.tally.shitScore}% shit, {data.tally.total} votes, {t('en', `tier.${data.tier.key}.label`)}. give yours on shit.so." />
+	<link rel="canonical" href="https://shit.so/@{data.handle}" />
+	<meta property="og:type" content="profile" />
+	<meta property="og:url" content="https://shit.so/@{data.handle}" />
 	<meta property="og:title" content="@{data.handle} is {data.tally.shitScore}% shit {data.tier.emoji}" />
 	<meta property="og:description" content="{data.tally.total} people gave a shit. tier: {t('en', `tier.${data.tier.key}.label`)}. give yours on shit.so" />
 	<meta property="og:image" content="{data.origin}/@{data.handle}/og.png" />
