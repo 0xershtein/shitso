@@ -225,6 +225,13 @@ async function handle(list: Mention[], userList: XUser[], opts: { skipAge: boole
 	return out;
 }
 
+/** Ops: post a standalone tweet from the bot account. */
+export async function postTweet(text: string): Promise<{ ok: boolean; id?: string; status: number }> {
+	const res = await xfetch('/tweets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) });
+	const j = (await res.json().catch(() => ({}))) as { data?: { id: string } };
+	return { ok: res.ok, id: j.data?.id, status: res.status };
+}
+
 /** Ops: force a token refresh now; returns the new expiry. */
 export async function forceRefresh(): Promise<{ ok: boolean; exp?: string }> {
 	const tk = await tokens();

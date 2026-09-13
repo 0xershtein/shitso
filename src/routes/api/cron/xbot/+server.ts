@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { forceRefresh, replay, runOnce } from '$lib/server/xbot';
+import { forceRefresh, postTweet, replay, runOnce } from '$lib/server/xbot';
 import { rateLimit, clientIp } from '$lib/server/ratelimit';
 import type { RequestHandler } from './$types';
 
@@ -23,4 +23,13 @@ export const GET: RequestHandler = async ({ request, url }) => {
 		console.error('[xbot]', e);
 		return json({ ok: false, error: (e as Error).message }, { status: 500, headers: { 'cache-control': 'no-store' } });
 	}
+};
+
+/** Ops (secret only): POST { text } → tweet from the bot account. */
+export const POST: RequestHandler = async ({ request }) => {
+	const auth = request.headers.get('authorization');
+	if (!env.CRON_SECRET || auth !== `Bearer ${env.CRON_SECRET}`) return json({ error: 'nope' }, { status: 401 });
+	const body = (await request.json().catch(() => ({}))) as { text?: string };
+	if (!body.text || body.text.length > 4000) return json({ error: 'bad text' }, { status: 400 });
+	return json(await postTweet(body.text), { headers: { 'cache-control': 'no-store' } });
 };
