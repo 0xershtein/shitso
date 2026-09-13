@@ -167,6 +167,29 @@
 	{#if data.isSelf}
 		<p class="rounded-lg border border-neutral-800 p-4 text-sm text-neutral-400">{t(L, 'profile.self')}</p>
 	{:else}
+		{#snippet bullshitTile(cls: string)}
+			{@const canSnap = !!(mine && data.eligible?.ok)}
+			<button
+				type="button"
+				onclick={() => {
+					if (!data.session?.user) location.href = `/signin?redirectTo=/@${data.handle}`;
+					else if (canSnap) camOpen = true;
+				}}
+				disabled={!!data.session?.user && !canSnap}
+				title={canSnap ? t(L, 'bs.button') : t(L, 'bs.voteFirst')}
+				class="{cls} flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-3 text-center transition
+					{canSnap
+					? 'border-neutral-500 bg-neutral-900/60 hover:border-white hover:bg-neutral-800 cursor-pointer'
+					: 'border-neutral-800 bg-neutral-950/40 text-neutral-600 cursor-not-allowed'}"
+			>
+				<span class="text-4xl sm:text-5xl {canSnap ? '' : 'grayscale opacity-60'}">📸</span>
+				<span class="text-xs font-bold leading-tight sm:text-sm">{t(L, 'bs.button')}</span>
+				{#if !canSnap}
+					<span class="text-[10px] leading-tight text-neutral-500">{data.session?.user ? t(L, 'bs.voteFirst') : t(L, 'elig.signin')}</span>
+				{/if}
+			</button>
+		{/snippet}
+
 		<form
 			method="POST"
 			action="?/vote"
@@ -182,11 +205,14 @@
 					optimistic = null;
 				};
 			}}
-			class="grid grid-cols-5 gap-2 sm:gap-3"
+			class="grid grid-cols-5 gap-2 sm:grid-cols-6 sm:gap-3"
 		>
-			{#each EMOJIS as e (e.key)}
+			{#each EMOJIS as e, i (e.key)}
 				{@const active = mine === e.key}
 				{@const label = t(L, `emoji.${e.key}`)}
+				{#if i === 5}
+					{@render bullshitTile('hidden sm:flex sm:col-start-6 sm:row-start-1 sm:row-span-2')}
+				{/if}
 				<button
 					name="emoji"
 					value={e.key}
@@ -201,7 +227,7 @@
 				</button>
 			{/each}
 			{#if mine}
-				<button name="emoji" value="none" class="col-span-5 mt-1 text-xs text-neutral-500 underline hover:text-neutral-300">{t(L, 'profile.remove')}</button>
+				<button name="emoji" value="none" class="col-span-5 mt-1 text-left text-xs text-neutral-500 underline hover:text-neutral-300">{t(L, 'profile.remove')}</button>
 			{/if}
 		</form>
 		{#if !data.session?.user}
@@ -209,14 +235,9 @@
 		{:else if data.eligible && !data.eligible.ok}
 			<p class="mt-2 text-xs text-amber-400">{t(L, data.eligible.key, data.eligible.vars)}</p>
 		{/if}
-		{#if mine && data.eligible?.ok}
-			<button
-				onclick={() => (camOpen = true)}
-				class="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-neutral-700 px-4 py-2.5 text-sm font-semibold hover:border-neutral-400 hover:bg-neutral-900"
-			>
-				📸 {t(L, 'bs.button')}
-			</button>
-		{/if}
+		<div class="mt-2 sm:hidden">
+			{@render bullshitTile('flex h-28 w-full')}
+		</div>
 		{#if form?.error}<p class="mt-2 text-sm text-red-400">{form.error}</p>{/if}
 	{/if}
 </section>

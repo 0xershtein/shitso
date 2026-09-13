@@ -65,16 +65,15 @@
 		ctx.fillStyle = '#f5f5f0';
 		ctx.fillRect(0, 0, W, H);
 
-		// cover-crop the video into the photo area, mirrored like a selfie
+		// cover-crop the video into the photo area. Preview is mirrored like a selfie,
+		// the saved shot is not, so text in the background reads correctly.
 		const vw = v.videoWidth || 640, vh = v.videoHeight || 480;
 		const scale = Math.max(PX / vw, PY / vh);
 		const sw = PX / scale, sh = PY / scale;
 		const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
 		ctx.save();
 		ctx.filter = 'grayscale(1) contrast(1.35) brightness(1.05) sepia(0.12)';
-		ctx.translate(20 + PX, 20);
-		ctx.scale(-1, 1);
-		ctx.drawImage(v, sx, sy, sw, sh, 0, 0, PX, PY);
+		ctx.drawImage(v, sx, sy, sw, sh, 20, 20, PX, PY);
 		ctx.restore();
 
 		// film grain + vignette
