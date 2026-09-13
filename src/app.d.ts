@@ -13,7 +13,11 @@ declare module '@auth/sveltekit' {
 }
 
 declare global {
-	namespace App {}
+	namespace App {
+		interface Locals {
+			locale: import('$lib/i18n').Locale;
+		}
+	}
 }
 
 export {};

@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { statsFor, tallyFor } from '$lib/server/db/queries';
 import { EMOJIS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
+import { t } from '$lib/i18n';
 import type { RequestHandler } from './$types';
 
 const cors = {
@@ -15,25 +16,30 @@ export const OPTIONS: RequestHandler = async () => new Response(null, { headers:
 export const GET: RequestHandler = async ({ params }) => {
 	const handle = normalizeHandle(params.handle);
 	if (!handle) return json({ error: 'bad handle' }, { status: 400, headers: cors });
-	const [t, s] = await Promise.all([tallyFor(handle), statsFor(handle)]);
-	const top = EMOJIS.find((e) => e.key === t.top);
-	const tier = tierFor(t.shitScore, t.total);
+	const [tally, s] = await Promise.all([tallyFor(handle), statsFor(handle)]);
+	const top = EMOJIS.find((e) => e.key === tally.top);
+	const tier = tierFor(tally.shitScore, tally.total);
 	const virality = viralityFor({
-		total: t.total,
-		bad: t.bad,
+		total: tally.total,
+		bad: tally.bad,
 		last24h: s.last24h,
-		distinctEmojis: t.distinctEmojis
+		distinctEmojis: tally.distinctEmojis
 	});
 	return json(
 		{
 			handle,
-			total: t.total,
-			shitScore: t.shitScore,
-			tier: { key: tier.key, label: tier.label, emoji: tier.emoji, warning: tier.warning },
-			virality: { score: virality.score, label: virality.label },
+			total: tally.total,
+			shitScore: tally.shitScore,
+			tier: {
+				key: tier.key,
+				label: t('en', `tier.${tier.key}.label`),
+				emoji: tier.emoji,
+				warning: tier.hasWarning ? t('en', `tier.${tier.key}.warning`) : null
+			},
+			virality: { score: virality.score, label: t('en', `v.${virality.label}`) },
 			last24h: s.last24h,
-			top: top ? { key: top.key, char: top.char, label: top.label } : null,
-			counts: t.counts,
+			top: top ? { key: top.key, char: top.char, label: t('en', `emoji.${top.key}`) } : null,
+			counts: tally.counts,
 			url: `https://shit.so/@${handle}`
 		},
 		{ headers: cors }

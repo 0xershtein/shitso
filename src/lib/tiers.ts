@@ -1,10 +1,8 @@
 export interface Tier {
 	key: 'unrated' | 'respected' | 'questionable' | 'certified' | 'biohazard';
-	label: string;
 	emoji: string;
-	blurb: string; // shown under the score
-	warning: string | null; // banner text, null = no banner
-	gifQuery: string; // giphy search
+	hasWarning: boolean; // banner shown; copy lives in i18n under tier.<key>.warning
+	gifQuery: string; // giphy/tenor search
 	bg: string; // full-page backdrop classes
 	accent: string; // text color class for the score
 	badge: string; // pill classes
@@ -14,10 +12,8 @@ export interface Tier {
 const TIERS: Record<Tier['key'], Tier> = {
 	unrated: {
 		key: 'unrated',
-		label: 'unrated',
 		emoji: '❓',
-		blurb: 'nobody has given a shit yet.',
-		warning: null,
+		hasWarning: false,
 		gifQuery: 'crickets silence',
 		bg: 'bg-neutral-950',
 		accent: 'text-neutral-300',
@@ -26,10 +22,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 	},
 	respected: {
 		key: 'respected',
-		label: 'respected',
 		emoji: '🫡',
-		blurb: 'the people have spoken. this one is alright.',
-		warning: null,
+		hasWarning: false,
 		gifQuery: 'standing ovation respect',
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(16,185,129,0.22),_transparent_60%)] bg-neutral-950',
 		accent: 'text-emerald-400',
@@ -38,10 +32,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 	},
 	questionable: {
 		key: 'questionable',
-		label: 'questionable',
 		emoji: '🤨',
-		blurb: 'jury is out. keep an eye on this one.',
-		warning: null,
+		hasWarning: false,
 		gifQuery: 'suspicious squint',
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(234,179,8,0.18),_transparent_60%)] bg-neutral-950',
 		accent: 'text-yellow-400',
@@ -50,10 +42,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 	},
 	certified: {
 		key: 'certified',
-		label: 'certified shit',
 		emoji: '💩',
-		blurb: 'most people who bothered think this account is shit.',
-		warning: 'heads up: the majority of voters flagged this account as shit. read with caution.',
+		hasWarning: true,
 		gifQuery: 'disgusted no thanks',
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(180,83,9,0.30),_transparent_60%)] bg-neutral-950',
 		accent: 'text-amber-400',
@@ -62,10 +52,8 @@ const TIERS: Record<Tier['key'], Tier> = {
 	},
 	biohazard: {
 		key: 'biohazard',
-		label: 'biohazard',
 		emoji: '☣️',
-		blurb: 'this is not an account, this is a hazard zone.',
-		warning: 'biohazard: almost everyone who voted thinks this account is shit. do not engage without protection.',
+		hasWarning: true,
 		gifQuery: 'dumpster fire',
 		bg: 'bg-[radial-gradient(ellipse_at_top,_rgba(220,38,38,0.32),_transparent_60%)] bg-neutral-950',
 		accent: 'text-red-400',
@@ -84,9 +72,11 @@ export function tierFor(shitScore: number, total: number): Tier {
 	return TIERS.respected;
 }
 
+export type ViralityLabel = 'dead' | 'simmering' | 'spicy' | 'volatile' | 'blow';
+
 export interface Virality {
 	score: number; // 0..100
-	label: string;
+	label: ViralityLabel; // i18n key under v.*
 	parts: { volume: number; heat: number; controversy: number; diversity: number };
 }
 
@@ -102,7 +92,7 @@ export function viralityFor(input: {
 	const controversy = input.total ? 1 - Math.abs(split - 0.5) * 2 : 0;
 	const diversity = input.distinctEmojis / 10;
 	const score = Math.round(100 * (0.35 * volume + 0.35 * heat + 0.2 * controversy + 0.1 * diversity));
-	const label =
-		score < 15 ? 'dead' : score < 35 ? 'simmering' : score < 55 ? 'spicy' : score < 75 ? 'volatile' : 'about to blow up';
+	const label: ViralityLabel =
+		score < 15 ? 'dead' : score < 35 ? 'simmering' : score < 55 ? 'spicy' : score < 75 ? 'volatile' : 'blow';
 	return { score, label, parts: { volume, heat, controversy, diversity } };
 }

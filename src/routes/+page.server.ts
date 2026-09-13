@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { leaderboard, recentFeed, totals, trending } from '$lib/server/db/queries';
 import { normalizeHandle } from '$lib/emojis';
+import { t } from '$lib/i18n';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -15,10 +16,10 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	search: async ({ request }) => {
+	search: async ({ request, locals }) => {
 		const form = await request.formData();
 		const handle = normalizeHandle(String(form.get('handle') ?? ''));
-		if (!handle) return { error: 'that is not an X handle' };
+		if (!handle) return { error: t(locals.locale, 'home.badHandle') };
 		redirect(303, `/@${handle}`);
 	}
 };

@@ -1,14 +1,23 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { page } from '$app/state';
+	import { t, LOCALES } from '$lib/i18n';
+	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
 
 	let { data, children } = $props();
+	const L = $derived(data.locale);
+	const langHref = (l: string) => {
+		const u = new URL(page.url);
+		u.searchParams.set('lang', l);
+		return u.pathname + u.search;
+	};
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<title>shit.so</title>
-	<meta name="description" content="give a shit about people on X. one vote per person, change it anytime." />
+	<meta name="description" content={t(L, 'home.sub')} />
 </svelte:head>
 
 <div class="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4">
@@ -20,10 +29,10 @@
 					{data.session.user.handle ? `@${data.session.user.handle}` : data.session.user.name}
 				</span>
 				<form method="POST" action="/signout">
-					<button class="rounded-md border border-neutral-800 px-3 py-1.5 hover:bg-neutral-900">sign out</button>
+					<button class="rounded-md border border-neutral-800 px-3 py-1.5 hover:bg-neutral-900">{t(L, 'nav.signout')}</button>
 				</form>
 			{:else}
-				<a href="/signin" class="rounded-md bg-white px-3 py-1.5 font-semibold text-black hover:bg-neutral-200">sign in</a>
+				<a href="/signin" class="rounded-md bg-white px-3 py-1.5 font-semibold text-black hover:bg-neutral-200">{t(L, 'nav.signin')}</a>
 			{/if}
 		</nav>
 	</header>
@@ -32,8 +41,19 @@
 		{@render children()}
 	</main>
 
-	<footer class="py-6 text-xs text-neutral-600">
-		one X account, one vote per person. 10+ followers, 7+ day old account. change your mind anytime. ·
-		<a href="https://x.com/erendotdmg" class="underline hover:text-neutral-400">@erendotdmg</a>
+	<footer class="flex flex-wrap items-center justify-between gap-2 py-6 text-xs text-neutral-600">
+		<span>
+			{t(L, 'footer.rule', { f: MIN_FOLLOWERS, d: MIN_ACCOUNT_AGE_DAYS })} ·
+			<a href="https://x.com/erendotdmg" class="underline hover:text-neutral-400">@erendotdmg</a>
+		</span>
+		<span class="flex gap-2">
+			{#each LOCALES as l (l)}
+				<a
+					href={langHref(l)}
+					data-sveltekit-reload
+					class="uppercase {l === L ? 'text-neutral-300' : 'hover:text-neutral-400'}">{l}</a
+				>
+			{/each}
+		</span>
 	</footer>
 </div>

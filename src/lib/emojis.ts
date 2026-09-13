@@ -3,22 +3,21 @@ export type Tone = 'bad' | 'good';
 export interface Emoji {
 	key: string;
 	char: string;
-	label: string;
-	tone: Tone;
+	tone: Tone; // label lives in i18n under emoji.<key>
 }
 
 // The ten fixed reactions. Order matters: bad ones first, good ones last.
 export const EMOJIS: Emoji[] = [
-	{ key: 'shit', char: '💩', label: 'shit', tone: 'bad' },
-	{ key: 'cap', char: '🧢', label: 'cap', tone: 'bad' },
-	{ key: 'clown', char: '🤡', label: 'clown', tone: 'bad' },
-	{ key: 'snake', char: '🐍', label: 'snake', tone: 'bad' },
-	{ key: 'bot', char: '🤖', label: 'bot', tone: 'bad' },
-	{ key: 'brain', char: '🧠', label: 'big brain', tone: 'good' },
-	{ key: 'fire', char: '🔥', label: 'fire', tone: 'good' },
-	{ key: 'goat', char: '🐐', label: 'goat', tone: 'good' },
-	{ key: 'respect', char: '🫡', label: 'respect', tone: 'good' },
-	{ key: 'gem', char: '💎', label: 'gem', tone: 'good' }
+	{ key: 'shit', char: '💩', tone: 'bad' },
+	{ key: 'cap', char: '🧢', tone: 'bad' },
+	{ key: 'clown', char: '🤡', tone: 'bad' },
+	{ key: 'snake', char: '🐍', tone: 'bad' },
+	{ key: 'bot', char: '🤖', tone: 'bad' },
+	{ key: 'brain', char: '🧠', tone: 'good' },
+	{ key: 'fire', char: '🔥', tone: 'good' },
+	{ key: 'goat', char: '🐐', tone: 'good' },
+	{ key: 'respect', char: '🫡', tone: 'good' },
+	{ key: 'gem', char: '💎', tone: 'good' }
 ];
 
 export const EMOJI_KEYS = EMOJIS.map((e) => e.key);

@@ -2,6 +2,7 @@ import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import fontDataUrl from './fonts/Inter-ExtraBold.ttf?inline';
 import type { Tier } from '$lib/tiers';
+import { t } from '$lib/i18n';
 
 // satori shapes text with harfbuzzjs, whose hb.wasm is copied into the Vercel bundle by scripts/postbuild.mjs.
 const font = Buffer.from(fontDataUrl.split(',')[1], 'base64');
@@ -119,7 +120,7 @@ export async function renderOg(i: OgInput): Promise<Buffer> {
 									borderRadius: 999,
 									alignSelf: 'flex-start'
 								},
-								`${i.tier.emoji} ${i.tier.label}`
+								`${i.tier.emoji} ${t('en', `tier.${i.tier.key}.label`)}`
 							)
 						: h('div', { fontSize: 30, color: '#a3a3a3' }, 'no verdict yet')
 				])

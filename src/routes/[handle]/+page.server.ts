@@ -13,6 +13,7 @@ import { gifFor } from '$lib/server/giphy';
 import { EMOJI_KEYS, normalizeHandle } from '$lib/emojis';
 import { tierFor, viralityFor } from '$lib/tiers';
 import { eligibility } from '$lib/eligibility';
+import { t } from '$lib/i18n';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
@@ -57,11 +58,12 @@ export const actions: Actions = {
 		if (!handle) error(404);
 		const session = await locals.auth();
 		if (!session?.user?.id) redirect(303, `/signin?redirectTo=/@${handle}`);
-		if (session.user.handle === handle) return fail(400, { error: 'you cannot rate yourself, nice try' });
+		const L = locals.locale;
+		if (session.user.handle === handle) return fail(400, { error: t(L, 'vote.self') });
 		const elig = eligibility(session.user);
-		if (!elig.ok) return fail(403, { error: elig.reason });
+		if (!elig.ok) return fail(403, { error: t(L, elig.key, elig.vars) });
 		if (await onCooldown(session.user.id, handle))
-			return fail(429, { error: `easy. wait ${VOTE_COOLDOWN_SECONDS} seconds between changes.` });
+			return fail(429, { error: t(L, 'vote.cooldown', { s: VOTE_COOLDOWN_SECONDS }) });
 
 		const form = await request.formData();
 		const emoji = String(form.get('emoji') ?? '');
@@ -69,7 +71,7 @@ export const actions: Actions = {
 			await removeVote(session.user.id, session.user.handle, handle);
 			return { ok: true };
 		}
-		if (!EMOJI_KEYS.includes(emoji)) return fail(400, { error: 'unknown emoji' });
+		if (!EMOJI_KEYS.includes(emoji)) return fail(400, { error: t(L, 'vote.unknown') });
 		await castVote(session.user.id, session.user.handle, handle, emoji);
 		return { ok: true };
 	}
