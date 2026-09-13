@@ -225,6 +225,14 @@ async function handle(list: Mention[], userList: XUser[], opts: { skipAge: boole
 	return out;
 }
 
+/** Ops: force a token refresh now; returns the new expiry. */
+export async function forceRefresh(): Promise<{ ok: boolean; exp?: string }> {
+	const tk = await tokens();
+	if (!tk) return { ok: false };
+	const next = await refresh(tk);
+	return next ? { ok: true, exp: new Date(next.exp).toISOString() } : { ok: false };
+}
+
 /** Re-process one tweet by id (ops): clears its done-marker and runs the normal handler. */
 export async function replay(tweetId: string): Promise<RunResult> {
 	const r = redis();

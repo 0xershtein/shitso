@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { replay, runOnce } from '$lib/server/xbot';
+import { forceRefresh, replay, runOnce } from '$lib/server/xbot';
 import { rateLimit, clientIp } from '$lib/server/ratelimit';
 import type { RequestHandler } from './$types';
 
@@ -15,6 +15,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
 		if (!(await rateLimit('xbot:global', 1, 45_000)).ok) return json({ ok: true, throttled: true }, { headers: { 'cache-control': 'no-store' } });
 	}
 	try {
+		if (trusted && url.searchParams.get('refresh')) return json(await forceRefresh(), { headers: { 'cache-control': 'no-store' } });
 		const id = trusted ? url.searchParams.get('replay') : null;
 		const r = id && /^\d+$/.test(id) ? await replay(id) : await runOnce();
 		return json({ ok: true, ...r }, { headers: { 'cache-control': 'no-store' } });
