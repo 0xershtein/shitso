@@ -4,6 +4,7 @@
 	import { tierFor, MIN_VOTES_FOR_TIER } from '$lib/tiers';
 	import { ago, t } from '$lib/i18n';
 	import Search from '$lib/components/Search.svelte';
+	import LiveFeed from '$lib/components/LiveFeed.svelte';
 
 	let { data } = $props();
 	const L = $derived(data.locale);
@@ -46,7 +47,9 @@
 			<span class="w-5 text-right text-xs text-neutral-600">{i + 1}</span>
 			<img src="/avatar/{target}" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
 			<span class="min-w-0 flex-1 truncate">@{target}</span>
-			<span class="hidden shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:inline {tier.badge}">{tier.emoji} {t(L, `tier.${tier.key}.label`)}</span>
+			{#if tier.key !== 'unrated'}
+				<span class="hidden shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:inline {tier.badge}">{tier.emoji} {t(L, `tier.${tier.key}.label`)}</span>
+			{/if}
 			<span class="shrink-0 text-xs text-neutral-500">{right ?? t(L, 'home.votes', { n: total })}</span>
 			{#if total >= MIN_VOTES_FOR_TIER}
 				<span class="w-11 shrink-0 text-right text-sm font-semibold {tier.accent}">{shitScore}%</span>
@@ -99,20 +102,5 @@
 </section>
 
 {#if data.feed.length > 0}
-	<section class="mt-10">
-		<h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">{t(L, 'home.live')}</h2>
-		<ul class="space-y-1 text-sm">
-			{#each data.feed as f, i (i)}
-				{@const e = emojiByKey(f.emoji)}
-				<li class="flex items-center gap-2 text-neutral-400">
-					<span class="w-8 text-right text-[11px] text-neutral-600">{ago(L, f.at, true)}</span>
-					<span class="text-neutral-300">{f.voterHandle ? `@${f.voterHandle}` : t(L, 'home.someone')}</span>
-					<span>{t(L, 'home.gave')}</span>
-					<span class="text-lg leading-none" title={e ? t(L, `emoji.${e.key}`) : ''}>{e?.char ?? '❓'}</span>
-					<span>{t(L, 'home.to')}</span>
-					<a href="/@{f.target}" class="font-semibold text-neutral-200 hover:underline">@{f.target}</a>
-				</li>
-			{/each}
-		</ul>
-	</section>
+	<LiveFeed locale={L} initial={data.feed.map((f) => ({ voter: f.voterHandle, target: f.target, emoji: f.emoji, at: f.at }))} />
 {/if}

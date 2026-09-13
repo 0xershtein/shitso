@@ -45,7 +45,7 @@ No Chrome Web Store on purpose. Install from this repo:
 3. **Load unpacked** → pick the unzipped folder.
 4. Sign in once on [shit.so](https://shit.so). Open X.
 
-It only talks to shit.so. See [shit.so/extension](https://shit.so/extension).
+It only talks to shit.so. See [shit.so/extension](https://shit.so/extension). The `extension/` folder is mirrored to [0xershtein/shitso-extension](https://github.com/0xershtein/shitso-extension) with `pnpm sync:extension`.
 
 ## API
 

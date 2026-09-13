@@ -34,7 +34,7 @@
 				<div class="text-sm leading-7">
 					{#if n === 1}
 						<a href="/downloads/shitso-extension.zip" class="font-semibold underline decoration-neutral-700 hover:decoration-white">{t(L, 'ext.s1')}</a>
-						<span class="text-neutral-500"> · {t(L, 'ext.source')}: <a href="{REPO}/tree/main/extension" target="_blank" rel="noopener" class="underline hover:text-neutral-300">github</a></span>
+						<span class="text-neutral-500"> · {t(L, 'ext.source')}: <a href="https://github.com/0xershtein/shitso-extension" target="_blank" rel="noopener" class="underline hover:text-neutral-300">github</a></span>
 					{:else}
 						{t(L, `ext.s${n}`)}
 					{/if}

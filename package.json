@@ -16,7 +16,8 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"pack:extension": "node scripts/pack-extension.mjs"
+		"pack:extension": "node scripts/pack-extension.mjs",
+		"sync:extension": "git subtree push --prefix extension git@github.com:0xershtein/shitso-extension.git main"
 	},
 	"devDependencies": {
 		"@neondatabase/serverless": "^1.1.0",
