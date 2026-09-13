@@ -39,9 +39,12 @@
 	</div>
 	<p class="mt-2 text-xs text-neutral-600">{t(L, 'home.stats', { votes: data.stats.votes, targets: data.stats.targets })}</p>
 	<div class="mx-auto mt-6 max-w-md rounded-lg border border-neutral-900 bg-neutral-950/60 px-4 py-3 text-left text-sm">
-		<div class="text-neutral-400">{t(L, 'home.byTweet')}</div>
+		<div class="mb-2 font-semibold text-neutral-200">🐦 {t(L, 'home.byTweet')}</div>
+		<div class="text-xs text-neutral-500">{t(L, 'home.byTweetMention')}</div>
 		<code class="mt-1 block rounded bg-neutral-900 px-3 py-2 font-mono text-neutral-100">@giveshit_bot @elonmusk 💩</code>
-		<div class="mt-1 text-xs text-neutral-500">{t(L, 'home.byTweetHint')}</div>
+		<div class="mt-2 text-xs text-neutral-500">{t(L, 'home.byTweetReply')}</div>
+		<code class="mt-1 block rounded bg-neutral-900 px-3 py-2 font-mono text-neutral-100">@giveshit_bot 💩</code>
+		<div class="mt-2 text-xs text-neutral-500">{t(L, 'home.byTweetHint')}</div>
 	</div>
 </section>
 
