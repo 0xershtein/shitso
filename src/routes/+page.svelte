@@ -35,7 +35,7 @@
 	<li>
 		<a href="/@{target}" class="flex items-center gap-3 px-3 py-2 hover:bg-neutral-900">
 			<span class="w-5 text-right text-xs text-neutral-600">{i + 1}</span>
-			<img src="https://unavatar.io/x/{target}?fallback=false" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
+			<img src="/avatar/{target}" alt="" class="size-7 rounded-full bg-neutral-800" loading="lazy" />
 			<span class="min-w-0 flex-1 truncate">@{target}</span>
 			<span class="hidden shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:inline {tier.badge}">{tier.emoji} {t(L, `tier.${tier.key}.label`)}</span>
 			<span class="hidden shrink-0 text-xs text-neutral-500 lg:inline">{right ?? t(L, 'home.votes', { n: total })}</span>

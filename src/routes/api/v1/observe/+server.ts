@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { normalizeHandle } from '$lib/emojis';
 import { observe } from '$lib/server/profiles';
+import { rememberAvatar } from '$lib/server/avatar';
 import { corsHeaders } from '$lib/server/cors';
 import type { RequestHandler } from './$types';
 
@@ -13,7 +14,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const session = await locals.auth();
 	if (!session?.user?.id) return json({ error: 'sign in first' }, { status: 401, headers });
 
-	let body: { handle?: string; followers?: unknown; following?: unknown; name?: unknown } = {};
+	let body: { handle?: string; followers?: unknown; following?: unknown; name?: unknown; avatar?: unknown } = {};
 	try {
 		body = await request.json();
 	} catch {
@@ -27,5 +28,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const name = typeof body.name === 'string' ? body.name.slice(0, 80) : null;
 
 	await observe(handle, { name, followers, following });
+	if (typeof body.avatar === 'string') await rememberAvatar(handle, body.avatar).catch(() => {});
 	return json({ ok: true }, { headers });
 };

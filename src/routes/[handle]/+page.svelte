@@ -113,7 +113,7 @@
 
 <section class="flex items-center gap-4 py-4">
 	<img
-		src="https://unavatar.io/x/{data.handle}"
+		src="/avatar/{data.handle}"
 		alt=""
 		class="size-20 rounded-full bg-neutral-800 ring-4 {data.tier.ring} {data.tier.key === 'biohazard' ? 'grayscale' : ''}"
 	/>

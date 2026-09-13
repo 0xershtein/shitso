@@ -3,6 +3,7 @@ import { Resvg } from '@resvg/resvg-js';
 import fontDataUrl from './fonts/Inter-ExtraBold.ttf?inline';
 import type { Tier } from '$lib/tiers';
 import { t } from '$lib/i18n';
+import { avatarDataUrl } from './avatar';
 
 // satori shapes text with harfbuzzjs, whose hb.wasm is copied into the Vercel bundle by scripts/postbuild.mjs.
 const font = Buffer.from(fontDataUrl.split(',')[1], 'base64');
@@ -46,15 +47,6 @@ async function twemoji(segment: string): Promise<string> {
 	return '';
 }
 
-async function avatar(handle: string): Promise<string | null> {
-	const res = await fetch(`https://unavatar.io/x/${handle}?fallback=false`, {
-		signal: AbortSignal.timeout(3000)
-	}).catch(() => null);
-	if (!res?.ok) return null;
-	const type = res.headers.get('content-type') ?? 'image/png';
-	return `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString('base64')}`;
-}
-
 export interface OgInput {
 	handle: string;
 	shitScore: number;
@@ -70,7 +62,7 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown) => 
 });
 
 export async function renderOg(i: OgInput): Promise<Buffer> {
-	const img = await avatar(i.handle);
+	const img = await avatarDataUrl(i.handle);
 	const rated = i.total >= 3;
 	const headline = rated ? `${i.shitScore}% shit` : 'unrated';
 	const sub = rated

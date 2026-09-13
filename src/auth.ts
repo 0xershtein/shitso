@@ -2,12 +2,14 @@ import { SvelteKitAuth, type Profile } from '@auth/sveltekit';
 import Twitter from '@auth/sveltekit/providers/twitter';
 import { env } from '$env/dynamic/private';
 import { rememberFromLogin } from '$lib/server/profiles';
+import { rememberAvatar } from '$lib/server/avatar';
 
 interface XProfile extends Profile {
 	data?: {
 		id: string;
 		name?: string;
 		username?: string;
+		profile_image_url?: string;
 		created_at?: string;
 		public_metrics?: { followers_count?: number; following_count?: number };
 	};
@@ -47,6 +49,7 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 						followers: p.data.public_metrics?.followers_count ?? null,
 						following: p.data.public_metrics?.following_count ?? null
 					}).catch((e) => console.error('[auth] profile upsert failed', e));
+					await rememberAvatar(p.data.username.toLowerCase(), p.data.profile_image_url).catch(() => {});
 				}
 				token.uid = `${account.provider}:${account.providerAccountId}`;
 				token.provider = account.provider;
