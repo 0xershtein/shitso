@@ -6,8 +6,15 @@
 	import { afterNavigate } from '$app/navigation';
 
 	const GA = !dev && env.PUBLIC_GA_ID ? env.PUBLIC_GA_ID : null;
+	// Svelte doesn't interpolate {GA} inside a raw <script> in the head, so configure from here.
+	let gaConfigured = false;
 	afterNavigate(() => {
-		if (GA && typeof gtag === 'function') gtag('event', 'page_view', { page_path: location.pathname });
+		if (!GA || typeof gtag !== 'function') return;
+		if (!gaConfigured) {
+			gtag('config', GA, { send_page_view: false, anonymize_ip: true });
+			gaConfigured = true;
+		}
+		gtag('event', 'page_view', { page_path: location.pathname });
 	});
 	import { t, LOCALES } from '$lib/i18n';
 	import { MIN_FOLLOWERS, MIN_ACCOUNT_AGE_DAYS } from '$lib/eligibility';
@@ -36,7 +43,6 @@
 			window.dataLayer = window.dataLayer || [];
 			function gtag() { dataLayer.push(arguments); }
 			gtag('js', new Date());
-			gtag('config', '{GA}', { send_page_view: false, anonymize_ip: true });
 		</script>
 	{/if}
 </svelte:head>
